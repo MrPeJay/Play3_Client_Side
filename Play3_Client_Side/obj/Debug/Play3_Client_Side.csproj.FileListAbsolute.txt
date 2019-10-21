@@ -6,3 +6,9 @@ C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_C
 C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_Client_Side.csproj.GenerateResource.cache
 C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_Client_Side.exe
 C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_Client_Side.pdb
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_Client_Side.Form1.resources
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\bin\Debug\Newtonsoft.Json.dll
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\bin\Debug\System.Net.Http.Formatting.dll
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\bin\Debug\Newtonsoft.Json.xml
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\bin\Debug\System.Net.Http.Formatting.xml
+C:\Univieras\OPP\Rest-Core\Play3_Client_Side\Play3_Client_Side\obj\Debug\Play3_Client_Side.csproj.CopyComplete
