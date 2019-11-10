@@ -27,9 +27,13 @@ namespace Play3_Client_Side
 
         private bool movingUp, movingDown, movingRight, movingLeft;
 
+        private int maxY, maxX;
+
         public GameWindow()
         {
             InitializeComponent();
+            maxY = ClientSize.Height;
+            maxX = ClientSize.Width;
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 
             ApiHelper.InitializeClient();
@@ -45,28 +49,37 @@ namespace Play3_Client_Side
             if (playerObject == null) return;
 
             var moved = false;
+            int step = 5;
 
             if (movingUp)
             {
-                playerObject.Top -= 5;
+                int newCoord = playerObject.Top - step;
+                if (newCoord < 0) return;
+                playerObject.Top = newCoord;
                 moved = true;
             }
 
             if (movingDown)
             {
-                playerObject.Top += 5;
+                int newCoord = playerObject.Top + step;
+                if (newCoord > maxY) return;
+                playerObject.Top = newCoord;
                 moved = true;
             }
 
             if (movingLeft)
             {
-                playerObject.Left -= 5;
+                int newCoord = playerObject.Left - step;
+                if (newCoord < 0) return;
+                playerObject.Left = newCoord;
                 moved = true;
             }
 
             if (movingRight)
             {
-                playerObject.Left += 5;
+                int newCoord = playerObject.Left + step;
+                if (newCoord > maxX) return;
+                playerObject.Left = newCoord;
                 moved = true;
             }
 
@@ -75,7 +88,8 @@ namespace Play3_Client_Side
             {
                 var content = new Dictionary<string, string>
                 {
-                    {"playerUuid", currentPlayer.Uuid}, {"xCoord", playerObject.Location.X.ToString()},
+                    {"playerUuid", currentPlayer.Uuid},
+                    {"xCoord", playerObject.Location.X.ToString()},
                     {"yCoord", playerObject.Location.Y.ToString()}
                 };
 
@@ -295,13 +309,13 @@ namespace Play3_Client_Side
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
                         SizeMode = PictureBoxSizeMode.Zoom,
-                        BackColor = Color.Transparent
+                        BackColor = Color.Red
                     };
                 case ObjectType.Player:
                     return new PictureBox
                     {
                         Name = id,
-                        Size = new Size(8, 8),
+                        Size = new Size(10, 10),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
                         SizeMode = PictureBoxSizeMode.Zoom,

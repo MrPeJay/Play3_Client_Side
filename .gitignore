@@ -2,3 +2,9 @@
 .dist/*
 .vscode
 .vscode/*
+.vs
+.vs/*
+Play3_Client_Side/bin
+Play3_Client_Side/bin/*
+Play3_Client_Side/obj
+Play3_Client_Side/obj/*

@@ -141,7 +141,7 @@
             this.Controls.Add(this.GameName_Label);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.KeyPreview = true;
-            this.MinimumSize = new System.Drawing.Size(750, 700);
+            this.MinimumSize = new System.Drawing.Size(1000, 800);
             this.Name = "GameWindow";
             this.Tag = "Map";
             this.Text = "Play3";
