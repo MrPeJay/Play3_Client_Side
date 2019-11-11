@@ -305,6 +305,38 @@ namespace Play3_Client_Side
                     }
                 }
             });
+            await Processor.LoadData("api/food", (response) =>
+            {
+                var foods = JsonConvert.DeserializeObject<List<DTO.PlayerDTO>>(response);
+                var foodIds = foods.Select(player => player.Uuid).ToList();
+
+                //Delete player that no longer exist in server.
+                foreach (var control in foodList.Where(player => !foodIds.Contains(player))
+                    .SelectMany(player => Controls.Find(player, false)))
+                {
+                    Controls.Remove(control);
+                }
+
+                foreach (var food in foods)
+                {
+                    //If new food create a new object
+                    if (!foodList.Contains(food.Uuid))
+                    {
+                        foodList.Add(food.Uuid);
+
+                        var foodObject = GetObject(ObjectType.Food, food.Uuid, food.XCoord, food.YCoord);
+                        Controls.Add(foodObject);
+                    }
+                    //If not new, update
+                    else
+                    {
+                        foreach (var foodToUpdate in Controls.Find(food.Uuid, false))
+                        {
+                            foodToUpdate.Location = new Point(food.XCoord, food.YCoord);
+                        }
+                    }
+                }
+            });
         }
 
         private void GameName_Label_Click(object sender, EventArgs e)
