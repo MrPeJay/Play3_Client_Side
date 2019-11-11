@@ -96,18 +96,37 @@ namespace Play3_Client_Side
                 Processor.PostData("api/player/move", content);
             }
 
+            checkForCollision();
+        }
+
+        private void checkForCollision()
+        {
             foreach (Control x in this.Controls)
             {
-                if(x is PictureBox && x.Tag.Equals(ObjectType.Food))
+                if (x is PictureBox)
                 {
-                    if(playerObject.Bounds.IntersectsWith(x.Bounds))
+                    if (x.Tag.Equals(ObjectType.Food))
                     {
-                        Dictionary<string, string> content = new Dictionary<string, string>
+                        // Jei susiduria su maistu
+                        if (playerObject.Bounds.IntersectsWith(x.Bounds))
+                        {
+                            Dictionary<string, string> content = new Dictionary<string, string>
                         {
                             {"playerUuid", currentPlayer.Uuid },
                             {"foodUuid", x.Name }
                         };
-                        Processor.PostData("api/player/eat-food", content);
+                            Processor.PostData("api/player/eat-food", content);
+                        }
+                    }
+
+                    if (x.Tag.Equals(ObjectType.Player))
+                    {
+                        // Jei susiduria su žaidėju
+                    }
+
+                    if (x.Tag.Equals(ObjectType.Obstacle))
+                    {
+                        // Jei susiduria su kliūtimi
                     }
                 }
             }
