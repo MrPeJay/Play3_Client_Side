@@ -49,11 +49,11 @@ namespace Play3_Client_Side
             if (playerObject == null) return;
 
             var moved = false;
-            int step = 5;
+            int speed = 5;
 
             if (movingUp)
             {
-                int newCoord = playerObject.Top - step;
+                int newCoord = playerObject.Top - speed;
                 if (newCoord < 0) return;
                 playerObject.Top = newCoord;
                 moved = true;
@@ -61,7 +61,7 @@ namespace Play3_Client_Side
 
             if (movingDown)
             {
-                int newCoord = playerObject.Top + step;
+                int newCoord = playerObject.Top + speed;
                 if (newCoord > maxY) return;
                 playerObject.Top = newCoord;
                 moved = true;
@@ -69,7 +69,7 @@ namespace Play3_Client_Side
 
             if (movingLeft)
             {
-                int newCoord = playerObject.Left - step;
+                int newCoord = playerObject.Left - speed;
                 if (newCoord < 0) return;
                 playerObject.Left = newCoord;
                 moved = true;
@@ -77,7 +77,7 @@ namespace Play3_Client_Side
 
             if (movingRight)
             {
-                int newCoord = playerObject.Left + step;
+                int newCoord = playerObject.Left + speed;
                 if (newCoord > maxX) return;
                 playerObject.Left = newCoord;
                 moved = true;
@@ -94,6 +94,22 @@ namespace Play3_Client_Side
                 };
 
                 Processor.PostData("api/player/move", content);
+            }
+
+            foreach (Control x in this.Controls)
+            {
+                if(x is PictureBox && x.Tag.Equals(ObjectType.Food))
+                {
+                    if(playerObject.Bounds.IntersectsWith(x.Bounds))
+                    {
+                        Dictionary<string, string> content = new Dictionary<string, string>
+                        {
+                            {"playerUuid", currentPlayer.Uuid },
+                            {"foodUuid", x.Name }
+                        };
+                        Processor.PostData("api/player/eat-food", content);
+                    }
+                }
             }
         }
 
@@ -272,11 +288,14 @@ namespace Play3_Client_Side
             });
         }
 
+        private void GameName_Label_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void OnFormClosed(object sender, FormClosedEventArgs e)
         {
-            var content = new Dictionary<string, string> { { "playerUuid", currentPlayer.Uuid } };
-
-            Processor.PostData("api/player/delete", content);
+            Processor.DeleteData("api/player/delete", currentPlayer.Uuid);
         }
 
         private void OnControlAdded(object sender, ControlEventArgs e)
@@ -295,6 +314,7 @@ namespace Play3_Client_Side
                     return new PictureBox
                     {
                         Name = id,
+                        Tag = ObjectType.Food,
                         Size = new Size(2, 2),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
@@ -305,6 +325,7 @@ namespace Play3_Client_Side
                     return new PictureBox
                     {
                         Name = id,
+                        Tag = ObjectType.Obstacle,
                         Size = new Size(4, 4),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
@@ -315,6 +336,7 @@ namespace Play3_Client_Side
                     return new PictureBox
                     {
                         Name = id,
+                        Tag = ObjectType.Player,
                         Size = new Size(10, 10),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
