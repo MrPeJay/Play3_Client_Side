@@ -46,5 +46,23 @@ namespace Play3_Client_Side.API
                 }
             }
         }
+
+        public static async void DeleteData(string apiUrl, string uuid,
+            Action<string> onSuccess = null, Action<string> onFailure = null)
+        {
+            using (var response =
+                await ApiHelper.ApiClient.DeleteAsync(ApiHelper.ApiClient.BaseAddress + apiUrl + "?uuid=" + uuid))
+            {
+                if (response.IsSuccessStatusCode)
+                {
+                    onSuccess?.Invoke(JsonConvert.DeserializeObject(await response.Content.ReadAsStringAsync())
+                        .ToString());
+                }
+                else
+                {
+                    onFailure?.Invoke(response.ReasonPhrase);
+                }
+            }
+        }
     }
 }

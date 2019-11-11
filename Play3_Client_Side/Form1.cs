@@ -27,9 +27,13 @@ namespace Play3_Client_Side
 
         private bool movingUp, movingDown, movingRight, movingLeft;
 
+        private int maxY, maxX;
+
         public GameWindow()
         {
             InitializeComponent();
+            maxY = ClientSize.Height;
+            maxX = ClientSize.Width;
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 
             ApiHelper.InitializeClient();
@@ -45,28 +49,37 @@ namespace Play3_Client_Side
             if (playerObject == null) return;
 
             var moved = false;
+            int speed = 5;
 
             if (movingUp)
             {
-                playerObject.Top -= 5;
+                int newCoord = playerObject.Top - speed;
+                if (newCoord < 0) return;
+                playerObject.Top = newCoord;
                 moved = true;
             }
 
             if (movingDown)
             {
-                playerObject.Top += 5;
+                int newCoord = playerObject.Top + speed;
+                if (newCoord > maxY) return;
+                playerObject.Top = newCoord;
                 moved = true;
             }
 
             if (movingLeft)
             {
-                playerObject.Left -= 5;
+                int newCoord = playerObject.Left - speed;
+                if (newCoord < 0) return;
+                playerObject.Left = newCoord;
                 moved = true;
             }
 
             if (movingRight)
             {
-                playerObject.Left += 5;
+                int newCoord = playerObject.Left + speed;
+                if (newCoord > maxX) return;
+                playerObject.Left = newCoord;
                 moved = true;
             }
 
@@ -75,11 +88,28 @@ namespace Play3_Client_Side
             {
                 var content = new Dictionary<string, string>
                 {
-                    {"playerUuid", currentPlayer.Uuid}, {"xCoord", playerObject.Location.X.ToString()},
+                    {"playerUuid", currentPlayer.Uuid},
+                    {"xCoord", playerObject.Location.X.ToString()},
                     {"yCoord", playerObject.Location.Y.ToString()}
                 };
 
                 Processor.PostData("api/player/move", content);
+            }
+
+            foreach (Control x in this.Controls)
+            {
+                if(x is PictureBox && x.Tag.Equals(ObjectType.Food))
+                {
+                    if(playerObject.Bounds.IntersectsWith(x.Bounds))
+                    {
+                        Dictionary<string, string> content = new Dictionary<string, string>
+                        {
+                            {"playerUuid", currentPlayer.Uuid },
+                            {"foodUuid", x.Name }
+                        };
+                        Processor.PostData("api/player/eat-food", content);
+                    }
+                }
             }
         }
 
@@ -258,11 +288,14 @@ namespace Play3_Client_Side
             });
         }
 
+        private void GameName_Label_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void OnFormClosed(object sender, FormClosedEventArgs e)
         {
-            var content = new Dictionary<string, string> { { "playerUuid", currentPlayer.Uuid } };
-
-            Processor.PostData("api/player/delete", content);
+            Processor.DeleteData("api/player/delete", currentPlayer.Uuid);
         }
 
         private void OnControlAdded(object sender, ControlEventArgs e)
@@ -281,6 +314,7 @@ namespace Play3_Client_Side
                     return new PictureBox
                     {
                         Name = id,
+                        Tag = ObjectType.Food,
                         Size = new Size(2, 2),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
@@ -291,17 +325,19 @@ namespace Play3_Client_Side
                     return new PictureBox
                     {
                         Name = id,
+                        Tag = ObjectType.Obstacle,
                         Size = new Size(4, 4),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
                         SizeMode = PictureBoxSizeMode.Zoom,
-                        BackColor = Color.Transparent
+                        BackColor = Color.Red
                     };
                 case ObjectType.Player:
                     return new PictureBox
                     {
                         Name = id,
-                        Size = new Size(8, 8),
+                        Tag = ObjectType.Player,
+                        Size = new Size(10, 10),
                         Location = new Point(xCoord, yCoord),
                         Image = Resources.Player,
                         SizeMode = PictureBoxSizeMode.Zoom,
