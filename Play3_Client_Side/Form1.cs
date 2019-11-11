@@ -67,6 +67,11 @@ namespace Play3_Client_Side
             LoadingText.Font = new Font(fontCollection.Families[0], LoadingText.Font.Size);
         }
 
+        private void SetScore(int score)
+        {
+            ScoreLabel.Text = "Score: " + score;
+        }
+
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (playerObject == null) return;
@@ -204,6 +209,8 @@ namespace Play3_Client_Side
                     }
                 }
             }
+
+            SetScore(playerObject.Size.Width * 10);
         }
 
 
@@ -299,6 +306,7 @@ namespace Play3_Client_Side
 
                 //Disable Loading Screen.
                 LoadingText.Visible = false;
+                ScoreLabel.Visible = true;
 
             }, (error) => { });
         }

@@ -37,6 +37,7 @@
             this.Error_Label = new System.Windows.Forms.Label();
             this.LoadingText = new System.Windows.Forms.Label();
             this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.ScoreLabel = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // timer1
@@ -130,12 +131,25 @@
             this.timer2.Interval = 70;
             this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
             // 
+            // ScoreLabel
+            // 
+            this.ScoreLabel.AutoSize = true;
+            this.ScoreLabel.Font = new System.Drawing.Font("Century Gothic", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.ScoreLabel.ForeColor = System.Drawing.Color.White;
+            this.ScoreLabel.Location = new System.Drawing.Point(13, 13);
+            this.ScoreLabel.Name = "ScoreLabel";
+            this.ScoreLabel.Size = new System.Drawing.Size(55, 19);
+            this.ScoreLabel.TabIndex = 6;
+            this.ScoreLabel.Text = "Score: ";
+            this.ScoreLabel.Visible = false;
+            // 
             // GameWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.ClientSize = new System.Drawing.Size(978, 949);
+            this.Controls.Add(this.ScoreLabel);
             this.Controls.Add(this.LoadingText);
             this.Controls.Add(this.Error_Label);
             this.Controls.Add(this.Name_Input);
@@ -169,6 +183,7 @@
         private System.Windows.Forms.Label Error_Label;
         private System.Windows.Forms.Label LoadingText;
         private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Label ScoreLabel;
     }
 }
 
