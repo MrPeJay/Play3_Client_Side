@@ -167,7 +167,6 @@ namespace Play3_Client_Side
 
                     if (playerObject.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Name != x.Name)
                     {
-                        Console.WriteLine("Player: " + playerObject.Name + "; Target: " + x.Name);
                         DTO.PlayerDTO currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Name);
                         DTO.PlayerDTO targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
 
