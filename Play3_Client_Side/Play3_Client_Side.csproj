@@ -91,7 +91,11 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Amethyst.ttf" />
     <None Include="Resources\Player.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Obstacle.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -47,25 +47,24 @@
             // GameName_Label
             // 
             this.GameName_Label.Dock = System.Windows.Forms.DockStyle.Top;
-            this.GameName_Label.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.GameName_Label.Font = new System.Drawing.Font("Arial Narrow", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.GameName_Label.ForeColor = System.Drawing.Color.White;
             this.GameName_Label.Location = new System.Drawing.Point(0, 0);
-            this.GameName_Label.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.GameName_Label.Name = "GameName_Label";
-            this.GameName_Label.Size = new System.Drawing.Size(735, 236);
+            this.GameName_Label.Size = new System.Drawing.Size(978, 290);
             this.GameName_Label.TabIndex = 0;
             this.GameName_Label.Text = "PLAY3";
             this.GameName_Label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.GameName_Label.Click += new System.EventHandler(this.GameName_Label_Click);
+            this.GameName_Label.UseCompatibleTextRendering = true;
             // 
             // Play_Button
             // 
             this.Play_Button.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.Play_Button.AutoSize = true;
-            this.Play_Button.Location = new System.Drawing.Point(73, 431);
-            this.Play_Button.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Play_Button.Location = new System.Drawing.Point(96, 722);
+            this.Play_Button.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Play_Button.Name = "Play_Button";
-            this.Play_Button.Size = new System.Drawing.Size(394, 54);
+            this.Play_Button.Size = new System.Drawing.Size(525, 66);
             this.Play_Button.TabIndex = 1;
             this.Play_Button.Text = "PLAY";
             this.Play_Button.UseVisualStyleBackColor = true;
@@ -78,26 +77,23 @@
             this.EnterName_Label.BackColor = System.Drawing.Color.Transparent;
             this.EnterName_Label.Font = new System.Drawing.Font("Century Gothic", 28.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.EnterName_Label.ForeColor = System.Drawing.Color.White;
-            this.EnterName_Label.Location = new System.Drawing.Point(146, 229);
-            this.EnterName_Label.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.EnterName_Label.Location = new System.Drawing.Point(194, 282);
             this.EnterName_Label.Name = "EnterName_Label";
-            this.EnterName_Label.Size = new System.Drawing.Size(248, 45);
+            this.EnterName_Label.Size = new System.Drawing.Size(318, 58);
             this.EnterName_Label.TabIndex = 2;
             this.EnterName_Label.Text = "ENTER NAME";
             this.EnterName_Label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.EnterName_Label.Click += new System.EventHandler(this.label1_Click);
             // 
             // Name_Input
             // 
             this.Name_Input.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)));
             this.Name_Input.Font = new System.Drawing.Font("Century Gothic", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Name_Input.Location = new System.Drawing.Point(164, 334);
-            this.Name_Input.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Name_Input.Location = new System.Drawing.Point(218, 411);
+            this.Name_Input.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name_Input.Name = "Name_Input";
-            this.Name_Input.Size = new System.Drawing.Size(204, 30);
+            this.Name_Input.Size = new System.Drawing.Size(271, 36);
             this.Name_Input.TabIndex = 3;
             this.Name_Input.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.Name_Input.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // Error_Label
             // 
@@ -105,10 +101,9 @@
             this.Error_Label.BackColor = System.Drawing.Color.Transparent;
             this.Error_Label.Font = new System.Drawing.Font("Century Gothic", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Error_Label.ForeColor = System.Drawing.Color.Red;
-            this.Error_Label.Location = new System.Drawing.Point(83, 300);
-            this.Error_Label.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.Error_Label.Location = new System.Drawing.Point(110, 369);
             this.Error_Label.Name = "Error_Label";
-            this.Error_Label.Size = new System.Drawing.Size(366, 17);
+            this.Error_Label.Size = new System.Drawing.Size(488, 21);
             this.Error_Label.TabIndex = 4;
             this.Error_Label.Text = "Error";
             this.Error_Label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -118,15 +113,16 @@
             // 
             this.LoadingText.BackColor = System.Drawing.Color.Transparent;
             this.LoadingText.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LoadingText.Enabled = false;
             this.LoadingText.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.LoadingText.ForeColor = System.Drawing.Color.White;
-            this.LoadingText.Location = new System.Drawing.Point(0, 236);
-            this.LoadingText.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.LoadingText.Location = new System.Drawing.Point(0, 290);
             this.LoadingText.Name = "LoadingText";
-            this.LoadingText.Size = new System.Drawing.Size(735, 379);
+            this.LoadingText.Size = new System.Drawing.Size(978, 659);
             this.LoadingText.TabIndex = 5;
             this.LoadingText.Text = "Loading";
             this.LoadingText.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.LoadingText.UseCompatibleTextRendering = true;
             this.LoadingText.Visible = false;
             // 
             // timer2
@@ -136,10 +132,10 @@
             // 
             // GameWindow
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ClientSize = new System.Drawing.Size(735, 615);
+            this.ClientSize = new System.Drawing.Size(978, 949);
             this.Controls.Add(this.LoadingText);
             this.Controls.Add(this.Error_Label);
             this.Controls.Add(this.Name_Input);
@@ -148,12 +144,12 @@
             this.Controls.Add(this.GameName_Label);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.KeyPreview = true;
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.MinimumSize = new System.Drawing.Size(755, 658);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.MinimumSize = new System.Drawing.Size(1000, 1000);
             this.Name = "GameWindow";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Tag = "Map";
             this.Text = "Play3";
-            this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.OnFormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.ControlAdded += new System.Windows.Forms.ControlEventHandler(this.OnControlAdded);

@@ -47,6 +47,13 @@ namespace Play3_Client_Side.API
             }
         }
 
+        public enum PostDataType
+        {
+            Post,
+            Put, 
+            Delete
+        }
+
         public static async void DeleteData(string apiUrl, string uuid,
             Action<string> onSuccess = null, Action<string> onFailure = null)
         {
