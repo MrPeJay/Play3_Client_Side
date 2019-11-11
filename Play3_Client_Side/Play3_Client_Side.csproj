@@ -55,6 +55,11 @@
     <Compile Include="API\ApiHelper.cs" />
     <Compile Include="API\DTO.cs" />
     <Compile Include="API\Processor.cs" />
+    <Compile Include="DessignPatterns\Facade\GunFacade.cs" />
+    <Compile Include="DessignPatterns\Facade\GunLowerRail.cs" />
+    <Compile Include="DessignPatterns\Facade\GunMagazines.cs" />
+    <Compile Include="DessignPatterns\Facade\GunMuzzle.cs" />
+    <Compile Include="DessignPatterns\Facade\GunUpperRail.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -93,5 +98,6 @@
   <ItemGroup>
     <None Include="Resources\Player.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
