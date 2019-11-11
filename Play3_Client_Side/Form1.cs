@@ -170,9 +170,39 @@ namespace Play3_Client_Side
                         }
                     }
 
-                    if (x.Tag.Equals(ObjectType.Player))
+                    if (playerObject.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Name != x.Name)
                     {
-                        // Jei susiduria su žaidėju
+                        DTO.PlayerDTO currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Name);
+                        DTO.PlayerDTO targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
+
+                        if (currentPlayer.Health >= targetPlayer.Health)
+                        {
+                            playerList.Remove(x.Name);
+                            Controls.Remove(x);
+                            int newSize = playerObject.Size.Width + (int) targetPlayer.Health/5;
+                            currentPlayer.Health += targetPlayer.Health;
+                            playerObject.Size = new Size(newSize, newSize);
+                            var data = new Dictionary<string, string>
+                            {
+                                {"playerUuid", currentPlayer.Uuid},
+                                {"secondPlayerUuid", targetPlayer.Uuid}
+                            };
+                            Processor.PostData("api/player/eat-player", data);
+                        }
+                        else
+                        {
+                            playerList.Remove(playerObject.Name);
+                            Controls.Remove(playerObject);
+                            int newSize = x.Size.Width + (int)currentPlayer.Health/5;
+                            targetPlayer.Health += currentPlayer.Health;
+                            playerObject.Size = new Size(newSize, newSize);
+                            var data = new Dictionary<string, string>
+                            {
+                                {"playerUuid", targetPlayer.Uuid},
+                                {"secondPlayerUuid", currentPlayer.Uuid}
+                            };
+                            Processor.PostData("api/player/eat-player", data);
+                        }
                     }
 
                     if (x.Tag.Equals(ObjectType.Obstacle))
@@ -188,8 +218,8 @@ namespace Play3_Client_Side
                                     {"obstacleUuid", x.Name}
                                 };
 
-                                obstacleList.Remove(x.Name);
-                                Controls.Remove(x);
+                                // obstacleList.Remove(x.Name);
+                                // Controls.Remove(x);
 
                                 //Find food object and increase player size.
                                 var obstacleObject = GetObstacleByID(x.Name);

@@ -14,7 +14,7 @@ namespace Play3_Client_Side.API
 
         public static void InitializeClient()
         {
-            ApiClient = new HttpClient {BaseAddress = new Uri("https://localhost:44333/") };
+            ApiClient = new HttpClient {BaseAddress = new Uri("http://rest-core.azurewebsites.net/") };
             ApiClient.DefaultRequestHeaders.Accept.Clear();
             ApiClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
