@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Play3_Client_Side.API;
+using Play3_Client_Side.Classes;
 using Play3_Client_Side.Properties;
 
 namespace Play3_Client_Side
@@ -21,13 +22,15 @@ namespace Play3_Client_Side
         private DTO.GameDTO gameData;
 
         private DTO.PlayerDTO currentPlayer;
-        private Control playerObject;
+        private Player playerObject;
 
         private List<string> playerList = new List<string>();
         private List<string> foodList = new List<string>();
         private List<string> obstacleList = new List<string>();
 
-        private int growMultiplier = 5, minPlayerSpeed = 1, maxPlayerSpeed = 5, maxPlayerSize = 200, minPlayerSize = 10;
+        private int growMultiplier = 5;
+        //Player properties
+        public int minPlayerSpeed = 1, maxPlayerSpeed = 5, maxPlayerSize = 200, minPlayerSize = 10;
 
         private bool movingUp, movingDown, movingRight, movingLeft;
 
@@ -74,41 +77,44 @@ namespace Play3_Client_Side
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (playerObject == null) return;
+            if (playerObject == null)
+            {
+                return;
+            }
 
             var moved = false;
-            var calc = minPlayerSpeed * (maxPlayerSize / playerObject.Size.Width);
+            var calc = minPlayerSpeed * (maxPlayerSize / playerObject.size);
 
             var speed = calc > maxPlayerSpeed ? maxPlayerSpeed : calc;
             if (movingUp)
             {
-                var newCoord = playerObject.Top - speed;
+                var newCoord = playerObject.yCoord - speed;
                 if (newCoord < 0) return;
-                playerObject.Top = newCoord;
+                playerObject.MoveY(newCoord);
                 moved = true;
             }
 
             if (movingDown)
             {
-                var newCoord = playerObject.Top + speed;
+                var newCoord = playerObject.yCoord + speed;
                 if (newCoord > maxY) return;
-                playerObject.Top = newCoord;
+                playerObject.MoveY(newCoord);
                 moved = true;
             }
 
             if (movingLeft)
             {
-                var newCoord = playerObject.Left - speed;
+                var newCoord = playerObject.xCoord - speed;
                 if (newCoord < 0) return;
-                playerObject.Left = newCoord;
+                playerObject.MoveX(newCoord);
                 moved = true;
             }
 
             if (movingRight)
             {
-                var newCoord = playerObject.Left + speed;
+                var newCoord = playerObject.xCoord + speed;
                 if (newCoord > maxX) return;
-                playerObject.Left = newCoord;
+                playerObject.MoveX(newCoord);
                 moved = true;
             }
 
@@ -118,8 +124,8 @@ namespace Play3_Client_Side
                 var content = new Dictionary<string, string>
                 {
                     {"playerUuid", currentPlayer.Uuid},
-                    {"xCoord", playerObject.Location.X.ToString()},
-                    {"yCoord", playerObject.Location.Y.ToString()}
+                    {"xCoord", playerObject.objectControl.Location.X.ToString()},
+                    {"yCoord", playerObject.objectControl.Location.Y.ToString()}
                 };
 
                 Processor.PostData("api/player/move", content);
@@ -146,11 +152,11 @@ namespace Play3_Client_Side
                     if (x.Tag.Equals(ObjectType.Food))
                     {
                         // Jei susiduria su maistu
-                        if (playerObject.Bounds.IntersectsWith(x.Bounds))
+                        if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
                         {
                             var content = new Dictionary<string, string>
                             {
-                                {"playerUuid", currentPlayer.Uuid},
+                                {"playerUuid", playerObject.Uuid},
                                 {"foodUuid", x.Name}
                             };
 
@@ -159,29 +165,29 @@ namespace Play3_Client_Side
 
                             //Find food object and increase player size.
                             var foodObject = GetFoodByID(x.Name);
-                            var newSize = (int) (playerObject.Size.Width + foodObject.HealthPoints) > maxPlayerSize
+                            var newSize = (int) (playerObject.size + foodObject.HealthPoints) > maxPlayerSize
                                 ? maxPlayerSize
-                                : (int) (playerObject.Size.Width +
-                                         foodObject.HealthPoints / playerObject.Size.Width * growMultiplier) + 1;
+                                : (int) (playerObject.size +
+                                         foodObject.HealthPoints / playerObject.size * growMultiplier) + 1;
 
-                            playerObject.Size = new Size(newSize, newSize);
+                            playerObject.SetSize(newSize);
 
                             Processor.PostData("api/player/eat-food", content);
                         }
                     }
 
-                    if (playerObject.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Name != x.Name)
+                    if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Uuid != x.Name)
                     {
-                        DTO.PlayerDTO currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Name);
+                        DTO.PlayerDTO currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Uuid);
                         DTO.PlayerDTO targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
 
                         if (currentPlayer.Health >= targetPlayer.Health)
                         {
                             playerList.Remove(x.Name);
                             Controls.Remove(x);
-                            int newSize = playerObject.Size.Width + (int) targetPlayer.Health/5;
+                            int newSize = playerObject.size + (int) targetPlayer.Health/5;
                             currentPlayer.Health += targetPlayer.Health;
-                            playerObject.Size = new Size(newSize, newSize);
+                            playerObject.SetSize(newSize);
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", currentPlayer.Uuid},
@@ -191,11 +197,11 @@ namespace Play3_Client_Side
                         }
                         else
                         {
-                            playerList.Remove(playerObject.Name);
-                            Controls.Remove(playerObject);
+                            playerList.Remove(playerObject.Uuid);
+                            Controls.Remove(playerObject.objectControl);
                             int newSize = x.Size.Width + (int)currentPlayer.Health/5;
                             targetPlayer.Health += currentPlayer.Health;
-                            playerObject.Size = new Size(newSize, newSize);
+                            playerObject.SetSize(newSize);
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", targetPlayer.Uuid},
@@ -210,28 +216,28 @@ namespace Play3_Client_Side
                         if (x.Tag.Equals(ObjectType.Obstacle))
                         {
                             // If collides with obstacle
-                            if (playerObject.Bounds.IntersectsWith(x.Bounds))
+                            if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
                             {
                                 var content = new Dictionary<string, string>
                                 {
-                                    {"playerUuid", currentPlayer.Uuid},
+                                    {"playerUuid", playerObject.Uuid},
                                     {"obstacleUuid", x.Name}
                                 };
 
-                                // obstacleList.Remove(x.Name);
-                                // Controls.Remove(x);
+                                obstacleList.Remove(x.Name);
+                                Controls.Remove(x);
 
                                 //Find food object and increase player size.
                                 var obstacleObject = GetObstacleByID(x.Name);
 
-                                var tempSize = (int) (playerObject.Size.Width - obstacleObject.DamagePoints);
+                                var tempSize = (int) (playerObject.size - obstacleObject.DamagePoints);
 
                                 var newSize =
                                     tempSize < minPlayerSize
                                         ? minPlayerSize
                                         : tempSize;
 
-                                playerObject.Size = new Size(newSize, newSize);
+                                playerObject.SetSize(newSize);
 
                                 Processor.PostData("api/player/touch-obstacle", content);
                             }
@@ -240,7 +246,7 @@ namespace Play3_Client_Side
                 }
             }
 
-            SetScore(playerObject.Size.Width * 10);
+            SetScore(playerObject.size * 10);
         }
 
 
@@ -343,22 +349,43 @@ namespace Play3_Client_Side
 
         private void SpawnObjects()
         {
-            foreach (var foodObject in gameData.Foods.Select(food => GetObject(ObjectType.Food, food.Uuid, food.XCoord, food.YCoord, (int)food.HealthPoints)))
-            { 
-                Controls.Add(foodObject);
-                foodList.Add(foodObject.Name);
+            var playerCloneableObject = new Player();
+            var foodCloneableObject = new Food();
+            var obstacleCloneableObject = new Obstacle();
+
+            foreach (var player in gameData.Players)
+            {
+                var clonedPlayer = (Player)playerCloneableObject.Clone();
+
+                var tempSize = (int)player.Health / 10;
+                var calc = tempSize > maxPlayerSize ? maxPlayerSize :
+                    player.Health < minPlayerSize ? minPlayerSize : tempSize;
+
+                clonedPlayer.SetSize(calc).SetLocation(player.XCoord, player.YCoord).SetName(player.Uuid);
+
+                Controls.Add(clonedPlayer.objectControl);
+                playerList.Add(clonedPlayer.Uuid);
             }
 
-            foreach (var obstacleObject in gameData.Obstacles.Select(obstacle => GetObject(ObjectType.Obstacle, obstacle.Uuid, obstacle.XCoord, obstacle.YCoord, (int)obstacle.DamagePoints)))
+            foreach (var food in gameData.Foods)
             {
-                Controls.Add(obstacleObject);
-                obstacleList.Add(obstacleObject.Name);
+                var clonedFood = (Food)foodCloneableObject.Clone();
+
+                clonedFood.SetSize((int)food.HealthPoints).SetLocation(food.XCoord, food.YCoord).SetName(food.Uuid);
+
+                Controls.Add(clonedFood.objectControl);
+                foodList.Add(clonedFood.Uuid);
             }
 
-            foreach (var playerObject in gameData.Players.Select(player => GetObject(ObjectType.Player, player.Uuid, player.XCoord, player.YCoord, (int)player.Health)))
+
+            foreach (var obstacle in gameData.Obstacles)
             {
-                Controls.Add(playerObject);
-                playerList.Add(playerObject.Name);
+                var clonedObstacle = (Obstacle)obstacleCloneableObject.Clone();
+
+                clonedObstacle.SetSize((int)obstacle.DamagePoints).SetLocation(obstacle.XCoord, obstacle.YCoord).SetName(obstacle.Uuid);
+
+                Controls.Add(clonedObstacle.objectControl);
+                obstacleList.Add(clonedObstacle.Uuid);
             }
         }
 
@@ -384,9 +411,10 @@ namespace Play3_Client_Side
                     {
                         playerList.Add(player.Uuid);
 
-                        var playerObject = GetObject(ObjectType.Player, player.Uuid, player.XCoord, player.YCoord,
-                            (int) player.Health);
-                        Controls.Add(playerObject);
+                        var newPlayerObject = new Player(player.Uuid, player.XCoord, player.YCoord,
+                            (int)player.Health);
+
+                        Controls.Add(newPlayerObject.objectControl);
                     }
                     //If not new, update
                     else
@@ -419,7 +447,8 @@ namespace Play3_Client_Side
         {
             if (e.Control.Name.Equals(currentPlayer.Uuid))
             {
-                playerObject = e.Control;
+                playerObject = new Player(currentPlayer.Uuid, e.Control.Location.X, e.Control.Location.Y,
+                    e.Control.Size.Width) {objectControl = e.Control};
             }
         }
 
@@ -449,28 +478,12 @@ namespace Play3_Client_Side
                         SizeMode = PictureBoxSizeMode.Zoom,
                         BackColor = Color.Transparent
                     };
-                case ObjectType.Player:
-
-                    var tempSize = size / 10;
-                    var calc = tempSize > maxPlayerSize ? maxPlayerSize :
-                        size < minPlayerSize ? minPlayerSize : tempSize;
-
-                    return new PictureBox
-                    {
-                        Name = id,
-                        Tag = ObjectType.Player,
-                        Size = new Size(calc, calc),
-                        Location = new Point(xCoord, yCoord),
-                        Image = Resources.Player,
-                        SizeMode = PictureBoxSizeMode.Zoom,
-                        BackColor = Color.Transparent
-                    };
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
         }
 
-        private enum ObjectType
+        public enum ObjectType
         {
             Player,
             Food,
