@@ -61,6 +61,11 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="DesignPatterns\GunFacade.cs" />
+    <Compile Include="DesignPatterns\GunLowerRail.cs" />
+    <Compile Include="DesignPatterns\GunMagazines.cs" />
+    <Compile Include="DesignPatterns\GunMuzzle.cs" />
+    <Compile Include="DesignPatterns\GunUpperRail.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
