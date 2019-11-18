@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Play3_Client_Side.Interfaces;
 using Play3_Client_Side.Properties;
 
 namespace Play3_Client_Side.Classes

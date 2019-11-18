@@ -160,17 +160,25 @@ namespace Play3_Client_Side
                                 {"foodUuid", x.Name}
                             };
 
-                            foodList.Remove(x.Name);
+                            //foodList.Remove(x.Name);
                             Controls.Remove(x);
 
                             //Find food object and increase player size.
-                            var foodObject = GetFoodByID(x.Name);
-                            var newSize = (int) (playerObject.size + foodObject.HealthPoints) > maxPlayerSize
-                                ? maxPlayerSize
-                                : (int) (playerObject.size +
-                                         foodObject.HealthPoints / playerObject.size * growMultiplier) + 1;
+                            /*
+                           var foodObject = GetFoodByID(x.Name);
 
-                            playerObject.SetSize(newSize);
+                           if (foodObject == null)
+                           {
+                               return;
+                           }
+
+                           var newSize = (int) (playerObject.size + foodObject.HealthPoints) > maxPlayerSize
+                               ? maxPlayerSize
+                               : (int) (playerObject.size +
+                                        foodObject.HealthPoints / playerObject.size * growMultiplier) + 1;
+
+                           playerObject.SetSize(newSize);
+                           */
 
                             Processor.PostData("api/player/eat-food", content);
                         }
@@ -185,9 +193,17 @@ namespace Play3_Client_Side
                         {
                             playerList.Remove(x.Name);
                             Controls.Remove(x);
-                            int newSize = playerObject.size + (int) targetPlayer.Health/5;
+
+                            /*
+                            var newSize = (int)(playerObject.size + targetPlayer.Health) > maxPlayerSize
+                                ? maxPlayerSize
+                                : (int)(playerObject.size +
+                                         targetPlayer.Health / playerObject.size * growMultiplier) + 1;
+
+
                             currentPlayer.Health += targetPlayer.Health;
                             playerObject.SetSize(newSize);
+                            */
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", currentPlayer.Uuid},
@@ -199,9 +215,9 @@ namespace Play3_Client_Side
                         {
                             playerList.Remove(playerObject.Uuid);
                             Controls.Remove(playerObject.objectControl);
-                            int newSize = x.Size.Width + (int)currentPlayer.Health/5;
+                            //int newSize = x.Size.Width + (int)currentPlayer.Health/5;
                             targetPlayer.Health += currentPlayer.Health;
-                            playerObject.SetSize(newSize);
+                            //playerObject.SetSize(newSize);
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", targetPlayer.Uuid},
@@ -228,8 +244,9 @@ namespace Play3_Client_Side
                                 Controls.Remove(x);
 
                                 //Find food object and increase player size.
-                                var obstacleObject = GetObstacleByID(x.Name);
+                                //var obstacleObject = GetObstacleByID(x.Name);
 
+                                /*
                                 var tempSize = (int) (playerObject.size - obstacleObject.DamagePoints);
 
                                 var newSize =
@@ -238,7 +255,7 @@ namespace Play3_Client_Side
                                         : tempSize;
 
                                 playerObject.SetSize(newSize);
-
+                                */
                                 Processor.PostData("api/player/touch-obstacle", content);
                             }
                         }
@@ -404,8 +421,19 @@ namespace Play3_Client_Side
                     Controls.Remove(control);
                 }
 
-                foreach (var player in players.Where(player => !player.Uuid.Equals(currentPlayer.Uuid)))
+                foreach (var player in players)
                 {
+                    //Update current player
+                    if (player.Uuid.Equals(currentPlayer.Uuid))
+                    {
+                        var tempSize = (int)player.Health / 10;
+                        var calc = tempSize > maxPlayerSize ? maxPlayerSize :
+                                player.Health < minPlayerSize ? minPlayerSize : tempSize;
+
+                        playerObject.SetSize(calc);
+                        continue;
+                    }
+
                     //If new player create a new object
                     if (!playerList.Contains(player.Uuid))
                     {
@@ -423,11 +451,44 @@ namespace Play3_Client_Side
                         {
                             foundPlayer.Location = new Point(player.XCoord, player.YCoord);
 
-                            var size = (int) player.Health / 10;
-                            var calc = size > maxPlayerSize ? maxPlayerSize :
-                                size < minPlayerSize ? minPlayerSize : size;
+                            var tempSize = (int)player.Health / 10;
+                            var calc = tempSize > maxPlayerSize ? maxPlayerSize :
+                                player.Health < minPlayerSize ? minPlayerSize : tempSize;
 
                             foundPlayer.Size = new Size(calc, calc);
+                        }
+                    }
+                }
+            });
+
+            await Processor.LoadData("api/food", (response) =>
+            {
+                var foods = JsonConvert.DeserializeObject<List<DTO.FoodDTO>>(response);
+
+                var foodIds = foods.Select(food => food.Uuid).ToList();
+                //Delete player that no longer exist in server.
+                foreach (var control in foodList.Where(food => !foodIds.Contains(food))
+                    .SelectMany(food => Controls.Find(food, false)))
+                {
+                    Controls.Remove(control);
+                }
+                foreach (var food in foods)
+                {
+                    //If new food create a new object
+                    if (!foodList.Contains(food.Uuid))
+                    {
+                        foodList.Add(food.Uuid);
+                        var newFoodObject = new Food(food.Uuid, food.XCoord, food.YCoord,
+                            (int)food.HealthPoints);
+
+                        Controls.Add(newFoodObject.objectControl);
+                    }
+                    //If not new, update
+                    else
+                    {
+                        foreach (var foodToUpdate in Controls.Find(food.Uuid, false))
+                        {
+                            foodToUpdate.Location = new Point(food.XCoord, food.YCoord);
                         }
                     }
                 }
