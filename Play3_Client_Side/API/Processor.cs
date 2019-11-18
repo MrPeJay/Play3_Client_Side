@@ -10,7 +10,7 @@ namespace Play3_Client_Side.API
 {
     public class Processor
     {
-        public static async Task LoadData(string apiUrl, Action<string> onSuccess = null, Action<string> onFailure = null)
+        public async Task LoadData(string apiUrl, Action<string> onSuccess = null, Action<string> onFailure = null)
         {
             using (var response = await ApiHelper.ApiClient.GetAsync(ApiHelper.ApiClient.BaseAddress + apiUrl))
             {
@@ -27,7 +27,7 @@ namespace Play3_Client_Side.API
             }
         }
 
-        public static async void PostData(string apiUrl, Dictionary<string, string> data,
+        public async void PostData(string apiUrl, Dictionary<string, string> data,
             Action<string> onSuccess = null, Action<string> onFailure = null)
         {
             var content = new FormUrlEncodedContent(data);
@@ -54,7 +54,7 @@ namespace Play3_Client_Side.API
             Delete
         }
 
-        public static async void DeleteData(string apiUrl, string uuid,
+        public async void DeleteData(string apiUrl, string uuid,
             Action<string> onSuccess = null, Action<string> onFailure = null)
         {
             using (var response =

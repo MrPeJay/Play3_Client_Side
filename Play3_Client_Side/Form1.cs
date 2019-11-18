@@ -11,8 +11,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Play3_Client_Side.Adapter;
 using Play3_Client_Side.API;
 using Play3_Client_Side.Classes;
+using Play3_Client_Side.Command;
 using Play3_Client_Side.Properties;
 
 namespace Play3_Client_Side
@@ -23,6 +25,7 @@ namespace Play3_Client_Side
 
         private DTO.PlayerDTO currentPlayer;
         private Player playerObject;
+        private IUpdater updater = new ServerAdapter();
 
         private List<string> playerList = new List<string>();
         private List<string> foodList = new List<string>();
@@ -86,11 +89,15 @@ namespace Play3_Client_Side
             var calc = minPlayerSpeed * (maxPlayerSize / playerObject.size);
 
             var speed = calc > maxPlayerSpeed ? maxPlayerSpeed : calc;
+            PlayerMover mover = new PlayerMover();
             if (movingUp)
             {
                 var newCoord = playerObject.yCoord - speed;
                 if (newCoord < 0) return;
-                playerObject.MoveY(newCoord);
+
+                ICommand moveUp = new MoveUp(playerObject, newCoord);
+                mover.performMove(moveUp);
+                //playerObject.MoveY(newCoord);
                 moved = true;
             }
 
@@ -98,7 +105,10 @@ namespace Play3_Client_Side
             {
                 var newCoord = playerObject.yCoord + speed;
                 if (newCoord > maxY) return;
-                playerObject.MoveY(newCoord);
+
+                ICommand moveDown = new MoveDown(playerObject, newCoord);
+                mover.performMove(moveDown);
+                //playerObject.MoveY(newCoord);
                 moved = true;
             }
 
@@ -106,7 +116,10 @@ namespace Play3_Client_Side
             {
                 var newCoord = playerObject.xCoord - speed;
                 if (newCoord < 0) return;
-                playerObject.MoveX(newCoord);
+
+                ICommand moveLeft = new MoveLeft(playerObject, newCoord);
+                mover.performMove(moveLeft);
+                //playerObject.MoveX(newCoord);
                 moved = true;
             }
 
@@ -114,7 +127,10 @@ namespace Play3_Client_Side
             {
                 var newCoord = playerObject.xCoord + speed;
                 if (newCoord > maxX) return;
-                playerObject.MoveX(newCoord);
+
+                ICommand moveRight = new MoveRight(playerObject, newCoord);
+                mover.performMove(moveRight);
+                //playerObject.MoveX(newCoord);
                 moved = true;
             }
 
@@ -128,7 +144,7 @@ namespace Play3_Client_Side
                     {"yCoord", playerObject.objectControl.Location.Y.ToString()}
                 };
 
-                Processor.PostData("api/player/move", content);
+                updater.PostData("api/player/move", content);
             }
 
             CheckForCollision();
@@ -180,7 +196,7 @@ namespace Play3_Client_Side
                            playerObject.SetSize(newSize);
                            */
 
-                            Processor.PostData("api/player/eat-food", content);
+                            updater.PostData("api/player/eat-food", content);
                         }
                     }
 
@@ -209,7 +225,7 @@ namespace Play3_Client_Side
                                 {"playerUuid", currentPlayer.Uuid},
                                 {"secondPlayerUuid", targetPlayer.Uuid}
                             };
-                            Processor.PostData("api/player/eat-player", data);
+                            updater.PostData("api/player/eat-player", data);
                         }
                         else
                         {
@@ -223,7 +239,7 @@ namespace Play3_Client_Side
                                 {"playerUuid", targetPlayer.Uuid},
                                 {"secondPlayerUuid", currentPlayer.Uuid}
                             };
-                            Processor.PostData("api/player/eat-player", data);
+                            updater.PostData("api/player/eat-player", data);
                         }
                     }
 
@@ -256,7 +272,7 @@ namespace Play3_Client_Side
 
                                 playerObject.SetSize(newSize);
                                 */
-                                Processor.PostData("api/player/touch-obstacle", content);
+                                updater.PostData("api/player/touch-obstacle", content);
                             }
                         }
                     }
@@ -316,7 +332,7 @@ namespace Play3_Client_Side
                 return;
             }
 
-            await Processor.LoadData("api/player", (data) =>
+            await updater.LoadData("api/player", (data) =>
             { 
                 var players = JsonConvert.DeserializeObject<List<DTO.PlayerDTO>>(data);
 
@@ -330,7 +346,7 @@ namespace Play3_Client_Side
                 //Disable labels
                 var content = new Dictionary<string, string> {{"name", Name_Input.Text}};
 
-                Processor.PostData("api/player/new", content, (player) =>
+                updater.PostData("api/player/new", content, (player) =>
                 {
                     currentPlayer = JsonConvert.DeserializeObject<DTO.PlayerDTO>(player);
                     ToggleGame(false);
@@ -351,7 +367,7 @@ namespace Play3_Client_Side
             timer1.Enabled = true;
             timer2.Enabled = true;
 
-            await Processor.LoadData("api/game", (data) =>
+            await updater.LoadData("api/game", (data) =>
             {
                 gameData = JsonConvert.DeserializeObject<DTO.GameDTO>(data);
 
@@ -409,7 +425,7 @@ namespace Play3_Client_Side
         private async void timer2_Tick(object sender, EventArgs e)
         {
             //Request server other player locations
-            await Processor.LoadData("api/player", (otherPlayers) =>
+            await updater.LoadData("api/player", (otherPlayers) =>
             {
                 var players = JsonConvert.DeserializeObject<List<DTO.PlayerDTO>>(otherPlayers);
                 var playerIDs = players.Select(player => player.Uuid).ToList();
@@ -461,7 +477,7 @@ namespace Play3_Client_Side
                 }
             });
 
-            await Processor.LoadData("api/food", (response) =>
+            await updater.LoadData("api/food", (response) =>
             {
                 var foods = JsonConvert.DeserializeObject<List<DTO.FoodDTO>>(response);
 
@@ -500,7 +516,7 @@ namespace Play3_Client_Side
         {
             if (currentPlayer != null)
             {
-                Processor.DeleteData("api/player/delete", currentPlayer.Uuid);
+                updater.DeleteData("api/player/delete", currentPlayer.Uuid);
             }
         }
 
