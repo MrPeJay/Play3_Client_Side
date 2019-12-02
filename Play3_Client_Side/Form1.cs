@@ -275,7 +275,7 @@ namespace Play3_Client_Side
                 var calc = tempSize > PlayerSettings.maxPlayerSize ? PlayerSettings.maxPlayerSize :
                     player.Health < PlayerSettings.minPlayerSize ? PlayerSettings.minPlayerSize : tempSize;
 
-                clonedPlayer.SetSize(calc).SetLocation(player.XCoord, player.YCoord).SetName(player.Uuid);
+                clonedPlayer.Update(player.Uuid, player.XCoord, player.YCoord, calc);
 
                 Controls.Add(clonedPlayer.objectControl);
                 playerList.Add(clonedPlayer.Uuid);
@@ -286,7 +286,7 @@ namespace Play3_Client_Side
             {
                 var clonedFood = (Food)foodCloneableObject.Clone();
 
-                clonedFood.SetSize((int)food.HealthPoints).SetLocation(food.XCoord, food.YCoord).SetName(food.Uuid);
+                clonedFood.Update(food.Uuid, food.XCoord, food.YCoord, (int)food.HealthPoints);
 
                 Controls.Add(clonedFood.objectControl);
                 foodList.Add(clonedFood.Uuid);
@@ -297,7 +297,7 @@ namespace Play3_Client_Side
             {
                 var clonedObstacle = (Obstacle)obstacleCloneableObject.Clone();
 
-                clonedObstacle.SetSize((int)obstacle.DamagePoints).SetLocation(obstacle.XCoord, obstacle.YCoord).SetName(obstacle.Uuid);
+                clonedObstacle.Update(obstacle.Uuid, obstacle.XCoord, obstacle.YCoord, (int)obstacle.DamagePoints);
 
                 Controls.Add(clonedObstacle.objectControl);
                 obstacleList.Add(clonedObstacle.Uuid);
@@ -407,7 +407,9 @@ namespace Play3_Client_Side
                     {
                         playerList.Add(player.Uuid);
 
-                        var newPlayerObject = new Player(player.Uuid, player.XCoord, player.YCoord,
+                        var newPlayerObject = new Player();
+
+                        newPlayerObject.Update(player.Uuid, player.XCoord, player.YCoord,
                             (int)player.Health);
 
                         Controls.Add(newPlayerObject.objectControl);
@@ -446,7 +448,10 @@ namespace Play3_Client_Side
                     if (!foodList.Contains(food.Uuid))
                     {
                         foodList.Add(food.Uuid);
-                        var newFoodObject = new Food(food.Uuid, food.XCoord, food.YCoord,
+
+                        var newFoodObject = new Food();
+
+                        newFoodObject.Update(food.Uuid, food.XCoord, food.YCoord,
                             (int)food.HealthPoints);
 
                         Controls.Add(newFoodObject.objectControl);
@@ -519,8 +524,10 @@ namespace Play3_Client_Side
         {
             if (e.Control.Name.Equals(currentPlayer.Uuid))
             {
-                playerObject = new Player(currentPlayer.Uuid, e.Control.Location.X, e.Control.Location.Y,
-                    e.Control.Size.Width) {objectControl = e.Control};
+                playerObject = new Player() {objectControl = e.Control};
+
+                playerObject.Update(currentPlayer.Uuid, e.Control.Location.X, e.Control.Location.Y,
+                    e.Control.Size.Width);
             }
         }
 
@@ -561,15 +568,5 @@ namespace Play3_Client_Side
         }
 
         #endregion
-
-        /// <summary>
-        /// Types of objects available in the game.
-        /// </summary>
-        public enum ObjectType
-        {
-            Player,
-            Food,
-            Obstacle
-        }
     }
 }

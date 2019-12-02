@@ -12,3 +12,10 @@ namespace Play3_Client_Side.Prototype
         Control objectControl { get; set; }
     }
 }
+
+public enum ObjectType
+{
+    Player,
+    Food,
+    Obstacle
+}

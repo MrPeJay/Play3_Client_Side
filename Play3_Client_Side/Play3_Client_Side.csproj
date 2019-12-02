@@ -65,6 +65,7 @@
     <Compile Include="Command\MoveUp.cs" />
     <Compile Include="Command\PlayerMover.cs" />
     <Compile Include="Prototype\IObject.cs" />
+    <Compile Include="Prototype\Object.cs" />
     <Compile Include="Prototype\Obstacle.cs" />
     <Compile Include="Prototype\Player.cs" />
     <Compile Include="Form1.cs">

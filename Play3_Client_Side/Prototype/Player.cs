@@ -4,67 +4,17 @@ using Play3_Client_Side.Properties;
 
 namespace Play3_Client_Side.Prototype
 {
-    class Player : IObject
+    internal class Player : Object
     {
-        public int xCoord { get; set; }
-        public int yCoord { get; set; }
-        public string Uuid { get; set; }
-
-        public int size { get; set; }
-        public Control objectControl { get; set; }
-
         public Player()
         {
             objectControl = new PictureBox
             {
-                Tag = GameWindow.ObjectType.Player,
+                Tag = ObjectType.Player,
                 Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
-        }
-
-        public Player(string id, int xCoord, int yCoord, int size)
-        {
-            this.xCoord = xCoord;
-            this.yCoord = yCoord;
-            this.size = size;
-            Uuid = id;
-
-            objectControl =  new PictureBox
-            {
-                Name = id,
-                Tag = GameWindow.ObjectType.Player,
-                Size = new Size(size, size),
-                Location = new Point(xCoord, yCoord),
-                Image = Resources.Player,
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.Transparent
-            };
-        }
-
-        public Player SetName(string name)
-        {
-            Uuid = name;
-
-            objectControl.Name = Uuid;
-            return this;
-        }
-
-        public Player SetLocation(int x, int y)
-        {
-            xCoord = x;
-            yCoord = y;
-
-            objectControl.Location = new Point(xCoord, yCoord);
-            return this;
-        }
-
-        public Player SetSize(int size)
-        {
-            this.size = size;
-            objectControl.Size = new Size(this.size, this.size);
-            return this;
         }
 
         public void MoveX(int x)
@@ -79,10 +29,32 @@ namespace Play3_Client_Side.Prototype
             objectControl.Top = yCoord;
         }
 
-        //Deep Cloning
-        public object Clone()
+        #region Parent overriden methods
+
+        public override void SetName(string name)
         {
-            var other = (Player)this.MemberwiseClone();
+            Uuid = name;
+
+            objectControl.Name = Uuid;
+        }
+
+        public override void SetLocation(int x, int y)
+        {
+            xCoord = x;
+            yCoord = y;
+
+            objectControl.Location = new Point(xCoord, yCoord);
+        }
+
+        public override void SetSize(int size)
+        {
+            this.size = size;
+            objectControl.Size = new Size(this.size, this.size);
+        }
+
+        public override object Clone()
+        {
+            var other = (Player) this.MemberwiseClone();
             other.objectControl = new PictureBox
             {
                 Name = objectControl.Name,
@@ -99,5 +71,7 @@ namespace Play3_Client_Side.Prototype
 
             return other;
         }
+
+        #endregion
     }
 }

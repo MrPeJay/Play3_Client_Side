@@ -4,69 +4,43 @@ using Play3_Client_Side.Properties;
 
 namespace Play3_Client_Side.Prototype
 {
-    class Obstacle : IObject
+    class Obstacle : Object
     {
-        public int xCoord { get; set; }
-        public int yCoord { get; set; }
-        public string Uuid { get; set; }
-        public int size { get; set; }
-        public Control objectControl { get; set; }
-
         public Obstacle()
         {
             objectControl = new PictureBox
             {
-                Tag = GameWindow.ObjectType.Obstacle,
+                Tag = ObjectType.Obstacle,
                 Image = Resources.Obstacle,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
         }
 
-        public Obstacle(string id, int xCoord, int yCoord, int damagePoints)
-        {
-            this.xCoord = xCoord;
-            this.yCoord = yCoord;
-            this.size = damagePoints / 4;
-            Uuid = id;
+        #region Parent overriden methods
 
-            objectControl = new PictureBox
-            {
-                Name = id,
-                Tag = GameWindow.ObjectType.Obstacle,
-                Size = new Size(size, size),
-                Location = new Point(xCoord, yCoord),
-                Image = Resources.Obstacle,
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.Transparent
-            };
-        }
-
-        public Obstacle SetName(string name)
+        public override void SetName(string name)
         {
             Uuid = name;
 
             objectControl.Name = Uuid;
-            return this;
         }
 
-        public Obstacle SetLocation(int x, int y)
+        public override void SetLocation(int x, int y)
         {
             xCoord = x;
             yCoord = y;
 
             objectControl.Location = new Point(xCoord, yCoord);
-            return this;
         }
 
-        public Obstacle SetSize(int size)
+        public override void SetSize(int size)
         {
             this.size = size / 4;
             objectControl.Size = new Size(this.size, this.size);
-            return this;
         }
 
-        public object Clone()
+        public override object Clone()
         {
             var other = (Obstacle)this.MemberwiseClone();
             other.objectControl = new PictureBox
@@ -85,5 +59,7 @@ namespace Play3_Client_Side.Prototype
 
             return other;
         }
+
+        #endregion
     }
 }
