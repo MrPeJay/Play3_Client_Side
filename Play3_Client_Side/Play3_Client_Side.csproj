@@ -57,27 +57,22 @@
     <Compile Include="API\ApiHelper.cs" />
     <Compile Include="API\DTO.cs" />
     <Compile Include="API\Processor.cs" />
-    <Compile Include="Classes\Food.cs" />
+    <Compile Include="Prototype\Food.cs" />
     <Compile Include="Command\ICommand.cs" />
     <Compile Include="Command\MoveDown.cs" />
     <Compile Include="Command\MoveLeft.cs" />
     <Compile Include="Command\MoveRight.cs" />
     <Compile Include="Command\MoveUp.cs" />
     <Compile Include="Command\PlayerMover.cs" />
-    <Compile Include="Interfaces\IObject.cs" />
-    <Compile Include="Classes\Obstacle.cs" />
-    <Compile Include="Classes\Player.cs" />
+    <Compile Include="Prototype\IObject.cs" />
+    <Compile Include="Prototype\Obstacle.cs" />
+    <Compile Include="Prototype\Player.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
-    <Compile Include="DesignPatterns\GunFacade.cs" />
-    <Compile Include="DesignPatterns\GunLowerRail.cs" />
-    <Compile Include="DesignPatterns\GunMagazines.cs" />
-    <Compile Include="DesignPatterns\GunMuzzle.cs" />
-    <Compile Include="DesignPatterns\GunUpperRail.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">

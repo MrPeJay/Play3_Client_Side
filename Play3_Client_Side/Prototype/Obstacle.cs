@@ -1,50 +1,48 @@
 ﻿using System.Drawing;
 using System.Windows.Forms;
-using Play3_Client_Side.Interfaces;
 using Play3_Client_Side.Properties;
 
-namespace Play3_Client_Side.Classes
+namespace Play3_Client_Side.Prototype
 {
-    class Player : IObject
+    class Obstacle : IObject
     {
         public int xCoord { get; set; }
         public int yCoord { get; set; }
         public string Uuid { get; set; }
-
         public int size { get; set; }
         public Control objectControl { get; set; }
 
-        public Player()
+        public Obstacle()
         {
             objectControl = new PictureBox
             {
-                Tag = GameWindow.ObjectType.Player,
-                Image = Resources.Player,
+                Tag = GameWindow.ObjectType.Obstacle,
+                Image = Resources.Obstacle,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
         }
 
-        public Player(string id, int xCoord, int yCoord, int size)
+        public Obstacle(string id, int xCoord, int yCoord, int damagePoints)
         {
             this.xCoord = xCoord;
             this.yCoord = yCoord;
-            this.size = size;
+            this.size = damagePoints / 4;
             Uuid = id;
 
-            objectControl =  new PictureBox
+            objectControl = new PictureBox
             {
                 Name = id,
-                Tag = GameWindow.ObjectType.Player,
+                Tag = GameWindow.ObjectType.Obstacle,
                 Size = new Size(size, size),
                 Location = new Point(xCoord, yCoord),
-                Image = Resources.Player,
+                Image = Resources.Obstacle,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
         }
 
-        public Player SetName(string name)
+        public Obstacle SetName(string name)
         {
             Uuid = name;
 
@@ -52,7 +50,7 @@ namespace Play3_Client_Side.Classes
             return this;
         }
 
-        public Player SetLocation(int x, int y)
+        public Obstacle SetLocation(int x, int y)
         {
             xCoord = x;
             yCoord = y;
@@ -61,36 +59,23 @@ namespace Play3_Client_Side.Classes
             return this;
         }
 
-        public Player SetSize(int size)
+        public Obstacle SetSize(int size)
         {
-            this.size = size;
+            this.size = size / 4;
             objectControl.Size = new Size(this.size, this.size);
             return this;
         }
 
-        public void MoveX(int x)
-        {
-            xCoord = x;
-            objectControl.Left = xCoord;
-        }
-
-        public void MoveY(int y)
-        {
-            yCoord = y;
-            objectControl.Top = yCoord;
-        }
-
-        //Deep Cloning
         public object Clone()
         {
-            var other = (Player)this.MemberwiseClone();
+            var other = (Obstacle)this.MemberwiseClone();
             other.objectControl = new PictureBox
             {
                 Name = objectControl.Name,
                 Tag = objectControl.Tag,
                 Size = objectControl.Size,
                 Location = objectControl.Location,
-                Image = Resources.Player,
+                Image = Resources.Obstacle,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = objectControl.BackColor
             };

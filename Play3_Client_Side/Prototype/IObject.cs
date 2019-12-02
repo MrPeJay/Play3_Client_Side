@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace Play3_Client_Side.Interfaces
+namespace Play3_Client_Side.Prototype
 {
     public interface IObject : ICloneable
     {

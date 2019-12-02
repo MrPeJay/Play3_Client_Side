@@ -1,10 +1,8 @@
-﻿using System;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Windows.Forms;
-using Play3_Client_Side.Interfaces;
 using Play3_Client_Side.Properties;
 
-namespace Play3_Client_Side.Classes
+namespace Play3_Client_Side.Prototype
 {
     class Food : IObject
     {

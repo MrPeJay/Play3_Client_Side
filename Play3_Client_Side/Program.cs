@@ -1,8 +1,5 @@
-﻿using Play3_Client_Side.DessignPatterns.Facade;
+﻿//using Play3_Client_Side.DessignPatterns.Facade;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Play3_Client_Side
@@ -19,8 +16,8 @@ namespace Play3_Client_Side
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new GameWindow());
 
-            var facade = new GunFacade();
-            facade.CreateCompleteGun();
+            //var facade = new GunFacade();
+            //facade.CreateCompleteGun();
             Console.ReadLine();
         }
     }

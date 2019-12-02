@@ -1,54 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using System.Windows.Forms;
-using Play3_Client_Side.Interfaces;
 using Play3_Client_Side.Properties;
 
-namespace Play3_Client_Side.Classes
+namespace Play3_Client_Side.Prototype
 {
-    class Obstacle : IObject
+    class Player : IObject
     {
         public int xCoord { get; set; }
         public int yCoord { get; set; }
         public string Uuid { get; set; }
+
         public int size { get; set; }
         public Control objectControl { get; set; }
 
-        public Obstacle()
+        public Player()
         {
             objectControl = new PictureBox
             {
-                Tag = GameWindow.ObjectType.Obstacle,
-                Image = Resources.Obstacle,
+                Tag = GameWindow.ObjectType.Player,
+                Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
         }
 
-        public Obstacle(string id, int xCoord, int yCoord, int damagePoints)
+        public Player(string id, int xCoord, int yCoord, int size)
         {
             this.xCoord = xCoord;
             this.yCoord = yCoord;
-            this.size = damagePoints / 4;
+            this.size = size;
             Uuid = id;
 
-            objectControl = new PictureBox
+            objectControl =  new PictureBox
             {
                 Name = id,
-                Tag = GameWindow.ObjectType.Obstacle,
+                Tag = GameWindow.ObjectType.Player,
                 Size = new Size(size, size),
                 Location = new Point(xCoord, yCoord),
-                Image = Resources.Obstacle,
+                Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
         }
 
-        public Obstacle SetName(string name)
+        public Player SetName(string name)
         {
             Uuid = name;
 
@@ -56,7 +51,7 @@ namespace Play3_Client_Side.Classes
             return this;
         }
 
-        public Obstacle SetLocation(int x, int y)
+        public Player SetLocation(int x, int y)
         {
             xCoord = x;
             yCoord = y;
@@ -65,23 +60,36 @@ namespace Play3_Client_Side.Classes
             return this;
         }
 
-        public Obstacle SetSize(int size)
+        public Player SetSize(int size)
         {
-            this.size = size / 4;
+            this.size = size;
             objectControl.Size = new Size(this.size, this.size);
             return this;
         }
 
+        public void MoveX(int x)
+        {
+            xCoord = x;
+            objectControl.Left = xCoord;
+        }
+
+        public void MoveY(int y)
+        {
+            yCoord = y;
+            objectControl.Top = yCoord;
+        }
+
+        //Deep Cloning
         public object Clone()
         {
-            var other = (Obstacle)this.MemberwiseClone();
+            var other = (Player)this.MemberwiseClone();
             other.objectControl = new PictureBox
             {
                 Name = objectControl.Name,
                 Tag = objectControl.Tag,
                 Size = objectControl.Size,
                 Location = objectControl.Location,
-                Image = Resources.Obstacle,
+                Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = objectControl.BackColor
             };

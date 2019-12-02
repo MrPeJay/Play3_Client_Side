@@ -1,43 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Play3_Client_Side.Adapter;
 using Play3_Client_Side.API;
-using Play3_Client_Side.Classes;
 using Play3_Client_Side.Command;
-using Play3_Client_Side.Properties;
+using Play3_Client_Side.Prototype;
 
 namespace Play3_Client_Side
 {
     public partial class GameWindow : Form
     {
+        #region Variables
+
+        //Current game data.
         private DTO.GameDTO gameData;
 
+        //Current player data and object control.
         private DTO.PlayerDTO currentPlayer;
         private Player playerObject;
+
         private IUpdater updater = new ServerAdapter();
 
+        //Lists of objects available in the game.
         private List<string> playerList = new List<string>();
         private List<string> foodList = new List<string>();
         private List<string> obstacleList = new List<string>();
 
-        private int growMultiplier = 5;
         //Player properties
-        public int minPlayerSpeed = 1, maxPlayerSpeed = 5, maxPlayerSize = 200, minPlayerSize = 10;
+        [Serializable]
+        public static class PlayerSettings
+        {
+            public static int minPlayerSpeed = 1,
+                maxPlayerSpeed = 5,
+                maxPlayerSize = 200,
+                minPlayerSize = 10;
 
-        private bool movingUp, movingDown, movingRight, movingLeft;
+            public static bool movingUp,
+                movingDown,
+                movingRight,
+                movingLeft;
+        }
 
+        //Max x and y positions of the player.
         private int maxY, maxX;
+
+
+        #endregion
 
         public GameWindow()
         {
@@ -49,116 +62,37 @@ namespace Play3_Client_Side
             ApiHelper.InitializeClient();
         }
 
-        //On form load set custom fonts.
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            var fontCollection = new PrivateFontCollection();
-
-            // Select your font from the resources.
-            var fontLength = Properties.Resources.Amethyst.Length;
-
-            // create a buffer to read in to
-            var fontdata = Properties.Resources.Amethyst;
-
-            // create an unsafe memory block for the font data
-            System.IntPtr data = Marshal.AllocCoTaskMem(fontLength);
-
-            // copy the bytes to the unsafe memory block
-            Marshal.Copy(fontdata, 0, data, fontLength);
-
-            // pass the font to the font collection
-            fontCollection.AddMemoryFont(data, fontLength);
-
-            GameName_Label.Font = new Font(fontCollection.Families[0], GameName_Label.Font.Size);
-            LoadingText.Font = new Font(fontCollection.Families[0], LoadingText.Font.Size);
-        }
-
+        /// <summary>
+        /// Updates player score text.
+        /// </summary>
+        /// <param name="score"></param>
         private void SetScore(int score)
         {
             ScoreLabel.Text = "Score: " + score;
         }
 
-        private void timer1_Tick(object sender, EventArgs e)
-        {
-            if (playerObject == null)
-            {
-                return;
-            }
-
-            var moved = false;
-            var calc = minPlayerSpeed * (maxPlayerSize / playerObject.size);
-
-            var speed = calc > maxPlayerSpeed ? maxPlayerSpeed : calc;
-            PlayerMover mover = new PlayerMover();
-            if (movingUp)
-            {
-                var newCoord = playerObject.yCoord - speed;
-                if (newCoord < 0) return;
-
-                ICommand moveUp = new MoveUp(playerObject, newCoord);
-                mover.performMove(moveUp);
-                //playerObject.MoveY(newCoord);
-                moved = true;
-            }
-
-            if (movingDown)
-            {
-                var newCoord = playerObject.yCoord + speed;
-                if (newCoord > maxY) return;
-
-                ICommand moveDown = new MoveDown(playerObject, newCoord);
-                mover.performMove(moveDown);
-                //playerObject.MoveY(newCoord);
-                moved = true;
-            }
-
-            if (movingLeft)
-            {
-                var newCoord = playerObject.xCoord - speed;
-                if (newCoord < 0) return;
-
-                ICommand moveLeft = new MoveLeft(playerObject, newCoord);
-                mover.performMove(moveLeft);
-                //playerObject.MoveX(newCoord);
-                moved = true;
-            }
-
-            if (movingRight)
-            {
-                var newCoord = playerObject.xCoord + speed;
-                if (newCoord > maxX) return;
-
-                ICommand moveRight = new MoveRight(playerObject, newCoord);
-                mover.performMove(moveRight);
-                //playerObject.MoveX(newCoord);
-                moved = true;
-            }
-
-            //Send player locations to server.
-            if (moved)
-            {
-                var content = new Dictionary<string, string>
-                {
-                    {"playerUuid", currentPlayer.Uuid},
-                    {"xCoord", playerObject.objectControl.Location.X.ToString()},
-                    {"yCoord", playerObject.objectControl.Location.Y.ToString()}
-                };
-
-                updater.PostData("api/player/move", content);
-            }
-
-            CheckForCollision();
-        }
-
+        /// <summary>
+        /// Get food object by its' ID
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
         private DTO.FoodDTO GetFoodByID(string ID)
         {
             return gameData.Foods.FirstOrDefault(food => food.Uuid.Equals(ID));
         }
+        /// <summary>
+        /// Get obstacle object by its' ID
+        /// </summary>
+        /// <param name="ID"></param>
+        /// <returns></returns>
         private DTO.ObstacleDTO GetObstacleByID(string ID)
         {
             return gameData.Obstacles.FirstOrDefault(obstacle => obstacle.Uuid.Equals(ID));
         }
 
+        /// <summary>
+        /// Checks for player collisions with other objects.
+        /// </summary>
         private void CheckForCollision()
         {
             foreach (Control x in this.Controls)
@@ -179,67 +113,39 @@ namespace Play3_Client_Side
                             //foodList.Remove(x.Name);
                             Controls.Remove(x);
 
-                            //Find food object and increase player size.
-                            /*
-                           var foodObject = GetFoodByID(x.Name);
-
-                           if (foodObject == null)
-                           {
-                               return;
-                           }
-
-                           var newSize = (int) (playerObject.size + foodObject.HealthPoints) > maxPlayerSize
-                               ? maxPlayerSize
-                               : (int) (playerObject.size +
-                                        foodObject.HealthPoints / playerObject.size * growMultiplier) + 1;
-
-                           playerObject.SetSize(newSize);
-                           */
-
-                            updater.PostData("api/player/eat-food", content);
+                            updater.PostData("api/player/eat-food", Processor.PostDataType.Post, content);
                         }
                     }
 
                     if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Uuid != x.Name)
                     {
-                        DTO.PlayerDTO currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Uuid);
-                        DTO.PlayerDTO targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
+                        var currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Uuid);
+                        var targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
 
                         if (currentPlayer.Health >= targetPlayer.Health)
                         {
                             playerList.Remove(x.Name);
                             Controls.Remove(x);
 
-                            /*
-                            var newSize = (int)(playerObject.size + targetPlayer.Health) > maxPlayerSize
-                                ? maxPlayerSize
-                                : (int)(playerObject.size +
-                                         targetPlayer.Health / playerObject.size * growMultiplier) + 1;
-
-
-                            currentPlayer.Health += targetPlayer.Health;
-                            playerObject.SetSize(newSize);
-                            */
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", currentPlayer.Uuid},
                                 {"secondPlayerUuid", targetPlayer.Uuid}
                             };
-                            updater.PostData("api/player/eat-player", data);
+                            updater.PostData("api/player/eat-player", Processor.PostDataType.Post, data);
                         }
                         else
                         {
                             playerList.Remove(playerObject.Uuid);
                             Controls.Remove(playerObject.objectControl);
-                            //int newSize = x.Size.Width + (int)currentPlayer.Health/5;
                             targetPlayer.Health += currentPlayer.Health;
-                            //playerObject.SetSize(newSize);
+
                             var data = new Dictionary<string, string>
                             {
                                 {"playerUuid", targetPlayer.Uuid},
                                 {"secondPlayerUuid", currentPlayer.Uuid}
                             };
-                            updater.PostData("api/player/eat-player", data);
+                            updater.PostData("api/player/eat-player", Processor.PostDataType.Post, data);
                         }
                     }
 
@@ -259,20 +165,7 @@ namespace Play3_Client_Side
                                 obstacleList.Remove(x.Name);
                                 Controls.Remove(x);
 
-                                //Find food object and increase player size.
-                                //var obstacleObject = GetObstacleByID(x.Name);
-
-                                /*
-                                var tempSize = (int) (playerObject.size - obstacleObject.DamagePoints);
-
-                                var newSize =
-                                    tempSize < minPlayerSize
-                                        ? minPlayerSize
-                                        : tempSize;
-
-                                playerObject.SetSize(newSize);
-                                */
-                                updater.PostData("api/player/touch-obstacle", content);
+                                updater.PostData("api/player/touch-obstacle", Processor.PostDataType.Post, content);
                             }
                         }
                     }
@@ -282,78 +175,62 @@ namespace Play3_Client_Side
             SetScore(playerObject.size * 10);
         }
 
-
+        #region Key Events
+        /// <summary>
+        /// Event triggered when a key is pressed down.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void KeyIsDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Up)
             {
-                movingUp = true;
+                PlayerSettings.movingUp = true;
             }
             if (e.KeyCode == Keys.Down)
             {
-                movingDown = true;
+                PlayerSettings.movingDown = true;
             }
             if (e.KeyCode == Keys.Right)
             {
-                movingRight = true;
+                PlayerSettings.movingRight = true;
             }
             if (e.KeyCode == Keys.Left)
             {
-                movingLeft = true;
+                PlayerSettings.movingLeft = true;
             }
         }
 
+        /// <summary>
+        /// Event triggered when a key is pressed up.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void KeyIsUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Up)
             {
-                movingUp = false;
+                PlayerSettings.movingUp = false;
             }
             if (e.KeyCode == Keys.Down)
             {
-                movingDown = false;
+                PlayerSettings.movingDown = false;
             }
             if (e.KeyCode == Keys.Right)
             {
-                movingRight = false;
+                PlayerSettings.movingRight = false;
             }
             if (e.KeyCode == Keys.Left)
             {
-                movingLeft = false;
+                PlayerSettings.movingLeft = false;
             }
         }
+        #endregion
 
-        private async void Play_Button_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(Name_Input.Text))
-            {
-                Error_Label.Text = "Please input your name".ToUpper();
-                Error_Label.Visible = true;
-                return;
-            }
-
-            await updater.LoadData("api/player", (data) =>
-            { 
-                var players = JsonConvert.DeserializeObject<List<DTO.PlayerDTO>>(data);
-
-                if (players.Where(player => !string.IsNullOrEmpty(player.Name)).Any(player => Name_Input.Text.ToLower().Equals(player.Name.ToLower())))
-                {
-                    Error_Label.Text = "Name already exists";
-                    Error_Label.Visible = true;
-                    return;
-                }
-
-                //Disable labels
-                var content = new Dictionary<string, string> {{"name", Name_Input.Text}};
-
-                updater.PostData("api/player/new", content, (player) =>
-                {
-                    currentPlayer = JsonConvert.DeserializeObject<DTO.PlayerDTO>(player);
-                    ToggleGame(false);
-                });
-            }, (error) => { });
-        }
-
+        /// <summary>
+        /// Loads game data.
+        /// </summary>
+        /// <param name="toggle"></param>
         private async void ToggleGame(bool toggle)
         {
             Error_Label.Visible = toggle;
@@ -380,26 +257,31 @@ namespace Play3_Client_Side
             }, (error) => { });
         }
 
+        /// <summary>
+        /// Spawns all types of objects.
+        /// </summary>
         private void SpawnObjects()
         {
             var playerCloneableObject = new Player();
             var foodCloneableObject = new Food();
             var obstacleCloneableObject = new Obstacle();
 
+            //Spawn Player objects
             foreach (var player in gameData.Players)
             {
                 var clonedPlayer = (Player)playerCloneableObject.Clone();
 
                 var tempSize = (int)player.Health / 10;
-                var calc = tempSize > maxPlayerSize ? maxPlayerSize :
-                    player.Health < minPlayerSize ? minPlayerSize : tempSize;
+                var calc = tempSize > PlayerSettings.maxPlayerSize ? PlayerSettings.maxPlayerSize :
+                    player.Health < PlayerSettings.minPlayerSize ? PlayerSettings.minPlayerSize : tempSize;
 
                 clonedPlayer.SetSize(calc).SetLocation(player.XCoord, player.YCoord).SetName(player.Uuid);
 
                 Controls.Add(clonedPlayer.objectControl);
                 playerList.Add(clonedPlayer.Uuid);
             }
-
+            
+            //Spawn Food objects
             foreach (var food in gameData.Foods)
             {
                 var clonedFood = (Food)foodCloneableObject.Clone();
@@ -410,7 +292,7 @@ namespace Play3_Client_Side
                 foodList.Add(clonedFood.Uuid);
             }
 
-
+            //Spawn Obstacle objects
             foreach (var obstacle in gameData.Obstacles)
             {
                 var clonedObstacle = (Obstacle)obstacleCloneableObject.Clone();
@@ -420,6 +302,76 @@ namespace Play3_Client_Side
                 Controls.Add(clonedObstacle.objectControl);
                 obstacleList.Add(clonedObstacle.Uuid);
             }
+        }
+
+        #region Timer Events
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            if (playerObject == null)
+            {
+                return;
+            }
+
+            var moved = false;
+            var calc = PlayerSettings.minPlayerSpeed * (PlayerSettings.maxPlayerSize / playerObject.size);
+
+            var speed = calc > PlayerSettings.maxPlayerSpeed ? PlayerSettings.maxPlayerSpeed : calc;
+            var mover = new PlayerMover();
+            if (PlayerSettings.movingUp)
+            {
+                var newCoord = playerObject.yCoord - speed;
+                if (newCoord < 0) return;
+
+                ICommand moveUp = new MoveUp(playerObject, newCoord);
+                mover.performMove(moveUp);
+                moved = true;
+            }
+
+            if (PlayerSettings.movingDown)
+            {
+                var newCoord = playerObject.yCoord + speed;
+                if (newCoord > maxY) return;
+
+                ICommand moveDown = new MoveDown(playerObject, newCoord);
+                mover.performMove(moveDown);
+                moved = true;
+            }
+
+            if (PlayerSettings.movingLeft)
+            {
+                var newCoord = playerObject.xCoord - speed;
+                if (newCoord < 0) return;
+
+                ICommand moveLeft = new MoveLeft(playerObject, newCoord);
+                mover.performMove(moveLeft);
+                moved = true;
+            }
+
+            if (PlayerSettings.movingRight)
+            {
+                var newCoord = playerObject.xCoord + speed;
+                if (newCoord > maxX) return;
+
+                ICommand moveRight = new MoveRight(playerObject, newCoord);
+                mover.performMove(moveRight);
+                moved = true;
+            }
+
+            //Send player locations to server.
+            if (moved)
+            {
+                var content = new Dictionary<string, string>
+                {
+                    {"playerUuid", currentPlayer.Uuid},
+                    {"xCoord", playerObject.objectControl.Location.X.ToString()},
+                    {"yCoord", playerObject.objectControl.Location.Y.ToString()}
+                };
+
+                updater.PostData("api/player/move", Processor.PostDataType.Post, content);
+            }
+
+            CheckForCollision();
         }
 
         private async void timer2_Tick(object sender, EventArgs e)
@@ -443,8 +395,8 @@ namespace Play3_Client_Side
                     if (player.Uuid.Equals(currentPlayer.Uuid))
                     {
                         var tempSize = (int)player.Health / 10;
-                        var calc = tempSize > maxPlayerSize ? maxPlayerSize :
-                                player.Health < minPlayerSize ? minPlayerSize : tempSize;
+                        var calc = tempSize > PlayerSettings.maxPlayerSize ? PlayerSettings.maxPlayerSize :
+                                player.Health < PlayerSettings.minPlayerSize ? PlayerSettings.minPlayerSize : tempSize;
 
                         playerObject.SetSize(calc);
                         continue;
@@ -468,8 +420,8 @@ namespace Play3_Client_Side
                             foundPlayer.Location = new Point(player.XCoord, player.YCoord);
 
                             var tempSize = (int)player.Health / 10;
-                            var calc = tempSize > maxPlayerSize ? maxPlayerSize :
-                                player.Health < minPlayerSize ? minPlayerSize : tempSize;
+                            var calc = tempSize > PlayerSettings.maxPlayerSize ? PlayerSettings.maxPlayerSize :
+                                player.Health < PlayerSettings.minPlayerSize ? PlayerSettings.minPlayerSize : tempSize;
 
                             foundPlayer.Size = new Size(calc, calc);
                         }
@@ -511,15 +463,58 @@ namespace Play3_Client_Side
             });
         }
 
+        #endregion
 
-        private void OnFormClosed(object sender, FormClosedEventArgs e)
+        #region Form actions
+
+        /// <summary>
+        /// On form loaded.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Form1_Load(object sender, EventArgs e)
         {
-            if (currentPlayer != null)
-            {
-                updater.DeleteData("api/player/delete", currentPlayer.Uuid);
-            }
+            var fontCollection = new PrivateFontCollection();
+
+            // Select your font from the resources.
+            var fontLength = Properties.Resources.Amethyst.Length;
+
+            // create a buffer to read in to
+            var fontdata = Properties.Resources.Amethyst;
+
+            // create an unsafe memory block for the font data
+            System.IntPtr data = Marshal.AllocCoTaskMem(fontLength);
+
+            // copy the bytes to the unsafe memory block
+            Marshal.Copy(fontdata, 0, data, fontLength);
+
+            // pass the font to the font collection
+            fontCollection.AddMemoryFont(data, fontLength);
+
+            GameName_Label.Font = new Font(fontCollection.Families[0], GameName_Label.Font.Size);
+            LoadingText.Font = new Font(fontCollection.Families[0], LoadingText.Font.Size);
         }
 
+        /// <summary>
+        /// Event triggered when form is closed.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnFormClosed(object sender, FormClosedEventArgs e)
+        {
+            //If was connected, delete current player from database.
+            if (currentPlayer == null) return;
+
+            var content = new Dictionary<string, string> { { "uuid", currentPlayer.Uuid } };
+
+            updater.PostData("api/player/delete", Processor.PostDataType.Delete, uuid: currentPlayer.Uuid);
+        }
+
+        /// <summary>
+        /// Event triggered when control is added to the form.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnControlAdded(object sender, ControlEventArgs e)
         {
             if (e.Control.Name.Equals(currentPlayer.Uuid))
@@ -529,37 +524,47 @@ namespace Play3_Client_Side
             }
         }
 
-        private PictureBox GetObject(ObjectType type, string id, int xCoord, int yCoord, int size)
+        /// <summary>
+        /// Method triggered on Play button click.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void Play_Button_Click(object sender, EventArgs e)
         {
-            switch (type)
+            if (string.IsNullOrEmpty(Name_Input.Text))
             {
-                case ObjectType.Food:
-                    return new PictureBox
-                    {
-                        Name = id,
-                        Tag = ObjectType.Food,
-                        Size = new Size(size / 2, size / 2),
-                        Location = new Point(xCoord, yCoord),
-                        Image = Resources.Player,
-                        SizeMode = PictureBoxSizeMode.Zoom,
-                        BackColor = Color.Transparent
-                    };
-                case ObjectType.Obstacle:
-                    return new PictureBox
-                    {
-                        Name = id,
-                        Tag = ObjectType.Obstacle,
-                        Size = new Size(size / 4, size / 4),
-                        Location = new Point(xCoord, yCoord),
-                        Image = Resources.Obstacle,
-                        SizeMode = PictureBoxSizeMode.Zoom,
-                        BackColor = Color.Transparent
-                    };
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                Error_Label.Text = "Please input your name".ToUpper();
+                Error_Label.Visible = true;
+                return;
             }
+
+            await updater.LoadData("api/player", (data) =>
+            {
+                var players = JsonConvert.DeserializeObject<List<DTO.PlayerDTO>>(data);
+
+                if (players.Where(player => !string.IsNullOrEmpty(player.Name)).Any(player => Name_Input.Text.ToLower().Equals(player.Name.ToLower())))
+                {
+                    Error_Label.Text = "Name already exists";
+                    Error_Label.Visible = true;
+                    return;
+                }
+
+                //Disable labels
+                var content = new Dictionary<string, string> { { "name", Name_Input.Text } };
+
+                updater.PostData("api/player/new", Processor.PostDataType.Post, content, (player) =>
+                {
+                    currentPlayer = JsonConvert.DeserializeObject<DTO.PlayerDTO>(player);
+                    ToggleGame(false);
+                });
+            }, (error) => { });
         }
 
+        #endregion
+
+        /// <summary>
+        /// Types of objects available in the game.
+        /// </summary>
         public enum ObjectType
         {
             Player,
