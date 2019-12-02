@@ -20,6 +20,9 @@ namespace Play3_Client_Side
         //Current game data.
         private DTO.GameDTO gameData;
 
+        //Prototype holder
+        private PrototypeHolder prototypes;
+
         //Current player data and object control.
         private DTO.PlayerDTO currentPlayer;
         private Player playerObject;
@@ -49,7 +52,6 @@ namespace Play3_Client_Side
         //Max x and y positions of the player.
         private int maxY, maxX;
 
-
         #endregion
 
         public GameWindow()
@@ -60,6 +62,8 @@ namespace Play3_Client_Side
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 
             ApiHelper.InitializeClient();
+
+            prototypes = new PrototypeHolder();
         }
 
         /// <summary>
@@ -262,14 +266,10 @@ namespace Play3_Client_Side
         /// </summary>
         private void SpawnObjects()
         {
-            var playerCloneableObject = new Player();
-            var foodCloneableObject = new Food();
-            var obstacleCloneableObject = new Obstacle();
-
             //Spawn Player objects
             foreach (var player in gameData.Players)
             {
-                var clonedPlayer = (Player)playerCloneableObject.Clone();
+                var clonedPlayer = prototypes.GetPlayerClone();
 
                 var tempSize = (int)player.Health / 10;
                 var calc = tempSize > PlayerSettings.maxPlayerSize ? PlayerSettings.maxPlayerSize :
@@ -284,7 +284,7 @@ namespace Play3_Client_Side
             //Spawn Food objects
             foreach (var food in gameData.Foods)
             {
-                var clonedFood = (Food)foodCloneableObject.Clone();
+                var clonedFood = prototypes.GetFoodClone();
 
                 clonedFood.Update(food.Uuid, food.XCoord, food.YCoord, (int)food.HealthPoints);
 
@@ -295,7 +295,7 @@ namespace Play3_Client_Side
             //Spawn Obstacle objects
             foreach (var obstacle in gameData.Obstacles)
             {
-                var clonedObstacle = (Obstacle)obstacleCloneableObject.Clone();
+                var clonedObstacle = prototypes.GetObstacleClone();
 
                 clonedObstacle.Update(obstacle.Uuid, obstacle.XCoord, obstacle.YCoord, (int)obstacle.DamagePoints);
 
@@ -407,7 +407,7 @@ namespace Play3_Client_Side
                     {
                         playerList.Add(player.Uuid);
 
-                        var newPlayerObject = new Player();
+                        var newPlayerObject = prototypes.GetPlayerClone();
 
                         newPlayerObject.Update(player.Uuid, player.XCoord, player.YCoord,
                             (int)player.Health);
@@ -449,7 +449,7 @@ namespace Play3_Client_Side
                     {
                         foodList.Add(food.Uuid);
 
-                        var newFoodObject = new Food();
+                        var newFoodObject = prototypes.GetFoodClone();
 
                         newFoodObject.Update(food.Uuid, food.XCoord, food.YCoord,
                             (int)food.HealthPoints);
@@ -510,8 +510,6 @@ namespace Play3_Client_Side
             //If was connected, delete current player from database.
             if (currentPlayer == null) return;
 
-            var content = new Dictionary<string, string> { { "uuid", currentPlayer.Uuid } };
-
             updater.PostData("api/player/delete", Processor.PostDataType.Delete, uuid: currentPlayer.Uuid);
         }
 
@@ -524,7 +522,8 @@ namespace Play3_Client_Side
         {
             if (e.Control.Name.Equals(currentPlayer.Uuid))
             {
-                playerObject = new Player() {objectControl = e.Control};
+                playerObject = prototypes.GetPlayerClone();
+                playerObject.objectControl = e.Control;
 
                 playerObject.Update(currentPlayer.Uuid, e.Control.Location.X, e.Control.Location.Y,
                     e.Control.Size.Width);
