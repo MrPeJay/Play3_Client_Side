@@ -121,6 +121,22 @@ namespace Play3_Client_Side
                         // Jei susiduria su maistu
                         if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
                         {
+                            //Add eaten food to eaten food hierarchy
+                            ObjectComponent eatenFood = null;
+
+                            foreach (var foodObject in foodObjects.GetLeafObjects().Cast<Food>()
+                                .Where(foodObject => foodObject.Uuid.Equals(x.Name)))
+                            {
+                                eatenFood = foodObject;
+                            }
+
+                            if (eatenFood != null)
+                            {
+                                eatenFoodObjects.AddObject(eatenFood);
+                            }
+
+                            foodObjects.RemoveObject(eatenFood);
+
                             var content = new Dictionary<string, string>
                             {
                                 {"playerUuid", playerObject.Uuid},
@@ -141,6 +157,22 @@ namespace Play3_Client_Side
 
                         if (currentPlayer.Health >= targetPlayer.Health)
                         {
+                            //Add eaten player to eaten player hierarchy
+                            ObjectComponent eatenPlayer = null;
+
+                            foreach (var player in playerObjects.GetLeafObjects().Cast<Player>()
+                                .Where(player => player.Uuid.Equals(x.Name)))
+                            {
+                                eatenPlayer = player;
+                            }
+
+                            if (eatenPlayer != null)
+                            {
+                                eatenPlayerObjects.AddObject(eatenPlayer);
+                            }
+
+                            playerObjects.RemoveObject(eatenPlayer);
+
                             //playerList.Remove(x.Name);
                             Controls.Remove(x);
 
@@ -173,6 +205,22 @@ namespace Play3_Client_Side
                             // If collides with obstacle
                             if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
                             {
+                                //Add eaten obstacle to eaten obstacle hierarchy
+                                ObjectComponent eatenObstacle = null;
+
+                                foreach (var obstacleObject in obstacleObjects.GetLeafObjects().Cast<Obstacle>()
+                                    .Where(obstacleObject => obstacleObject.Uuid.Equals(x.Name)))
+                                {
+                                    eatenObstacle = obstacleObject;
+                                }
+
+                                if (eatenObstacle != null)
+                                {
+                                    eatenObstacleObjects.AddObject(eatenObstacle);
+                                }
+
+                                obstacleObjects.RemoveObject(eatenObstacle);
+
                                 var content = new Dictionary<string, string>
                                 {
                                     {"playerUuid", playerObject.Uuid},

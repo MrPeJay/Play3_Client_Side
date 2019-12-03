@@ -40,7 +40,7 @@ namespace Play3_Client_Side.Prototype_Template_Composite
 
         public override List<ObjectComponent> GetLeafObjects()
         {
-            return objectComponents.Where(component => isLeaf()).ToList();
+            return objectComponents.Where(component => component.isLeaf()).ToList();
         }
     }
 }
