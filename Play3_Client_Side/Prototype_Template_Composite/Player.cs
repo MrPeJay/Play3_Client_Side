@@ -1,20 +1,34 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Windows.Forms;
 using Play3_Client_Side.Properties;
+using Play3_Client_Side.Prototype_Template_Composite;
 
 namespace Play3_Client_Side.Prototype
 {
-    class Obstacle : Object
+    internal class Player : Object
     {
-        public Obstacle()
+        public Player()
         {
             objectControl = new PictureBox
             {
-                Tag = ObjectType.Obstacle,
-                Image = Resources.Obstacle,
+                Tag = ObjectType.Player,
+                Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
+        }
+
+        public void MoveX(int x)
+        {
+            xCoord = x;
+            objectControl.Left = xCoord;
+        }
+
+        public void MoveY(int y)
+        {
+            yCoord = y;
+            objectControl.Top = yCoord;
         }
 
         #region Parent overriden methods
@@ -36,20 +50,20 @@ namespace Play3_Client_Side.Prototype
 
         public override void SetSize(int size)
         {
-            this.size = size / 4;
+            this.size = size;
             objectControl.Size = new Size(this.size, this.size);
         }
 
         public override object Clone()
         {
-            var other = (Obstacle)this.MemberwiseClone();
+            var other = (Player) this.MemberwiseClone();
             other.objectControl = new PictureBox
             {
                 Name = objectControl.Name,
                 Tag = objectControl.Tag,
                 Size = objectControl.Size,
                 Location = objectControl.Location,
-                Image = Resources.Obstacle,
+                Image = Resources.Player,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = objectControl.BackColor
             };
@@ -61,5 +75,30 @@ namespace Play3_Client_Side.Prototype
         }
 
         #endregion
+
+        public override void AddObject(ObjectComponent newObjectComponent)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void RemoveObject(ObjectComponent objectComponentToRemove)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override string GetComponentInfo()
+        {
+            return objectControl.Tag + " " + Uuid;
+        }
+
+        public override bool isLeaf()
+        {
+            return true;
+        }
+
+        public override List<ObjectComponent> GetLeafObjects()
+        {
+            return null;
+        }
     }
 }

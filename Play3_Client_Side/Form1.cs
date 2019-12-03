@@ -10,6 +10,7 @@ using Play3_Client_Side.Adapter;
 using Play3_Client_Side.API;
 using Play3_Client_Side.Command;
 using Play3_Client_Side.Prototype;
+using Play3_Client_Side.Prototype_Template_Composite;
 
 namespace Play3_Client_Side
 {
@@ -29,10 +30,16 @@ namespace Play3_Client_Side
 
         private IUpdater updater = new ServerAdapter();
 
-        //Lists of objects available in the game.
-        private List<string> playerList = new List<string>();
-        private List<string> foodList = new List<string>();
-        private List<string> obstacleList = new List<string>();
+        private ObjectComponent playerObjects;
+        private ObjectComponent eatenPlayerObjects;
+
+        private ObjectComponent foodObjects;
+        private ObjectComponent eatenFoodObjects;
+
+        private ObjectComponent obstacleObjects;
+        private ObjectComponent eatenObstacleObjects;
+
+        private ObjectComponent objects;
 
         //Player properties
         [Serializable]
@@ -63,6 +70,31 @@ namespace Play3_Client_Side
 
             ApiHelper.InitializeClient();
 
+            //Create 
+            objects = new ObjectGroup("All objects", "Every object in the scene:");
+
+            playerObjects = new ObjectGroup("Player Objects", "Every Player object in the scene:");
+            eatenPlayerObjects =
+                new ObjectGroup("Eaten Player objects", "All player objects that were eaten by you:");
+
+            foodObjects = new ObjectGroup("Food Objects", "Every food object in the scene:");
+            eatenFoodObjects =
+                new ObjectGroup("Eaten Food objects", "All food objects that were eaten by you:");
+
+            obstacleObjects =
+                new ObjectGroup("Obstacle Objects", "Every obstacle object in the scene:");
+            eatenObstacleObjects =
+                new ObjectGroup("Eaten Obstacle objects", "All obstacle objects that were eaten by you:");
+
+
+            playerObjects.AddObject(eatenPlayerObjects);
+            foodObjects.AddObject(eatenFoodObjects);
+            obstacleObjects.AddObject(eatenObstacleObjects);
+
+            objects.AddObject(playerObjects);
+            objects.AddObject(foodObjects);
+            objects.AddObject(obstacleObjects);
+
             prototypes = new PrototypeHolder();
         }
 
@@ -73,25 +105,6 @@ namespace Play3_Client_Side
         private void SetScore(int score)
         {
             ScoreLabel.Text = "Score: " + score;
-        }
-
-        /// <summary>
-        /// Get food object by its' ID
-        /// </summary>
-        /// <param name="ID"></param>
-        /// <returns></returns>
-        private DTO.FoodDTO GetFoodByID(string ID)
-        {
-            return gameData.Foods.FirstOrDefault(food => food.Uuid.Equals(ID));
-        }
-        /// <summary>
-        /// Get obstacle object by its' ID
-        /// </summary>
-        /// <param name="ID"></param>
-        /// <returns></returns>
-        private DTO.ObstacleDTO GetObstacleByID(string ID)
-        {
-            return gameData.Obstacles.FirstOrDefault(obstacle => obstacle.Uuid.Equals(ID));
         }
 
         /// <summary>
@@ -128,7 +141,7 @@ namespace Play3_Client_Side
 
                         if (currentPlayer.Health >= targetPlayer.Health)
                         {
-                            playerList.Remove(x.Name);
+                            //playerList.Remove(x.Name);
                             Controls.Remove(x);
 
                             var data = new Dictionary<string, string>
@@ -140,7 +153,7 @@ namespace Play3_Client_Side
                         }
                         else
                         {
-                            playerList.Remove(playerObject.Uuid);
+                            //playerList.Remove(playerObject.Uuid);
                             Controls.Remove(playerObject.objectControl);
                             targetPlayer.Health += currentPlayer.Health;
 
@@ -166,7 +179,7 @@ namespace Play3_Client_Side
                                     {"obstacleUuid", x.Name}
                                 };
 
-                                obstacleList.Remove(x.Name);
+                                //obstacleList.Remove(x.Name);
                                 Controls.Remove(x);
 
                                 updater.PostData("api/player/touch-obstacle", Processor.PostDataType.Post, content);
@@ -278,7 +291,8 @@ namespace Play3_Client_Side
                 clonedPlayer.Update(player.Uuid, player.XCoord, player.YCoord, calc);
 
                 Controls.Add(clonedPlayer.objectControl);
-                playerList.Add(clonedPlayer.Uuid);
+                //playerList.Add(clonedPlayer.Uuid);
+                playerObjects.AddObject(clonedPlayer);
             }
             
             //Spawn Food objects
@@ -289,7 +303,8 @@ namespace Play3_Client_Side
                 clonedFood.Update(food.Uuid, food.XCoord, food.YCoord, (int)food.HealthPoints);
 
                 Controls.Add(clonedFood.objectControl);
-                foodList.Add(clonedFood.Uuid);
+                //foodList.Add(clonedFood.Uuid);
+                foodObjects.AddObject(clonedFood);
             }
 
             //Spawn Obstacle objects
@@ -300,7 +315,8 @@ namespace Play3_Client_Side
                 clonedObstacle.Update(obstacle.Uuid, obstacle.XCoord, obstacle.YCoord, (int)obstacle.DamagePoints);
 
                 Controls.Add(clonedObstacle.objectControl);
-                obstacleList.Add(clonedObstacle.Uuid);
+                //obstacleList.Add(clonedObstacle.Uuid);
+                obstacleObjects.AddObject(clonedObstacle);
             }
         }
 
@@ -383,11 +399,13 @@ namespace Play3_Client_Side
                 var playerIDs = players.Select(player => player.Uuid).ToList();
 
                 //Delete player that no longer exist in server.
-                foreach (var control in playerList.Where(player => !playerIDs.Contains(player))
+                /*
+                foreach (var control in playerObjects.Where(player => !playerIDs.Contains(player))
                     .SelectMany(player => Controls.Find(player, false)))
                 {
                     Controls.Remove(control);
                 }
+                */
 
                 foreach (var player in players)
                 {
@@ -402,10 +420,12 @@ namespace Play3_Client_Side
                         continue;
                     }
 
+                    var playerControl = Controls.Find(player.Uuid, true);
+
                     //If new player create a new object
-                    if (!playerList.Contains(player.Uuid))
+                    if (playerControl.Length <= 0)
                     {
-                        playerList.Add(player.Uuid);
+                        //playerList.Add(player.Uuid);
 
                         var newPlayerObject = prototypes.GetPlayerClone();
 
@@ -413,7 +433,10 @@ namespace Play3_Client_Side
                             (int)player.Health);
 
                         Controls.Add(newPlayerObject.objectControl);
+
+                        playerObjects.AddObject(newPlayerObject);
                     }
+                    
                     //If not new, update
                     else
                     {
@@ -437,17 +460,22 @@ namespace Play3_Client_Side
 
                 var foodIds = foods.Select(food => food.Uuid).ToList();
                 //Delete player that no longer exist in server.
+                /*
                 foreach (var control in foodList.Where(food => !foodIds.Contains(food))
                     .SelectMany(food => Controls.Find(food, false)))
                 {
                     Controls.Remove(control);
                 }
+                */
+
                 foreach (var food in foods)
                 {
+                    var foodControl = Controls.Find(food.Uuid, true);
+
                     //If new food create a new object
-                    if (!foodList.Contains(food.Uuid))
+                    if (foodControl.Length <= 0)
                     {
-                        foodList.Add(food.Uuid);
+                        //foodList.Add(food.Uuid);
 
                         var newFoodObject = prototypes.GetFoodClone();
 
@@ -455,7 +483,10 @@ namespace Play3_Client_Side
                             (int)food.HealthPoints);
 
                         Controls.Add(newFoodObject.objectControl);
+
+                        foodObjects.AddObject(newFoodObject);
                     }
+                    
                     //If not new, update
                     else
                     {
