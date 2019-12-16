@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Play3_Client_Side.Adapter;
 using Play3_Client_Side.API;
 using Play3_Client_Side.Command;
+using Play3_Client_Side.Memento;
 using Play3_Client_Side.Prototype;
 using Play3_Client_Side.Prototype_Template_Composite;
 
@@ -39,7 +40,13 @@ namespace Play3_Client_Side
         private ObjectComponent obstacleObjects;
         private ObjectComponent eatenObstacleObjects;
 
+        private ObjectComponent timeTravelObjects;
+        private ObjectComponent eatenTimeTravelObjects;
+
         private ObjectComponent objects;
+
+        private CareTaker playerPositions;
+        private int savedPositionCount;
 
         //Player properties
         [Serializable]
@@ -53,8 +60,11 @@ namespace Play3_Client_Side
             public static bool movingUp,
                 movingDown,
                 movingRight,
-                movingLeft;
+                movingLeft,
+                canMove = true;
         }
+
+        private int timer = 0;
 
         //Max x and y positions of the player.
         private int maxY, maxX;
@@ -69,6 +79,8 @@ namespace Play3_Client_Side
             SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 
             ApiHelper.InitializeClient();
+
+            playerPositions = new CareTaker();
 
             //Create 
             objects = new ObjectGroup("All objects", "Every object in the scene:");
@@ -86,14 +98,20 @@ namespace Play3_Client_Side
             eatenObstacleObjects =
                 new ObjectGroup("Eaten Obstacle objects", "All obstacle objects that were eaten by you:");
 
+            timeTravelObjects = new ObjectGroup("Time travel Objects", "Every Time Travel objects in the scene");
+            eatenTimeTravelObjects = new ObjectGroup("Eaten Time travel objects",
+                "All time travel objects that were eaten by you");
+
 
             playerObjects.AddObject(eatenPlayerObjects);
             foodObjects.AddObject(eatenFoodObjects);
             obstacleObjects.AddObject(eatenObstacleObjects);
+            timeTravelObjects.AddObject(eatenTimeTravelObjects);
 
             objects.AddObject(playerObjects);
             objects.AddObject(foodObjects);
             objects.AddObject(obstacleObjects);
+            objects.AddObject(timeTravelObjects);
 
             prototypes = new PrototypeHolder();
         }
@@ -150,7 +168,8 @@ namespace Play3_Client_Side
                         }
                     }
 
-                    if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) && playerObject.Uuid != x.Name)
+                    if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds) && x.Tag.Equals(ObjectType.Player) &&
+                        playerObject.Uuid != x.Name)
                     {
                         var currentPlayer = gameData.Players.Find(player => player.Uuid == playerObject.Uuid);
                         var targetPlayer = gameData.Players.Find(player => player.Uuid == x.Name);
@@ -200,44 +219,62 @@ namespace Play3_Client_Side
 
                     if (x.Tag.Equals(ObjectType.Obstacle))
                     {
-                        if (x.Tag.Equals(ObjectType.Obstacle))
+                        // If collides with obstacle
+                        if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
                         {
-                            // If collides with obstacle
-                            if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
+                            //Add eaten obstacle to eaten obstacle hierarchy
+                            ObjectComponent eatenObstacle = null;
+
+                            foreach (var obstacleObject in obstacleObjects.GetLeafObjects().Cast<Obstacle>()
+                                .Where(obstacleObject => obstacleObject.Uuid.Equals(x.Name)))
                             {
-                                //Add eaten obstacle to eaten obstacle hierarchy
-                                ObjectComponent eatenObstacle = null;
-
-                                foreach (var obstacleObject in obstacleObjects.GetLeafObjects().Cast<Obstacle>()
-                                    .Where(obstacleObject => obstacleObject.Uuid.Equals(x.Name)))
-                                {
-                                    eatenObstacle = obstacleObject;
-                                }
-
-                                if (eatenObstacle != null)
-                                {
-                                    eatenObstacleObjects.AddObject(eatenObstacle);
-                                }
-
-                                obstacleObjects.RemoveObject(eatenObstacle);
-
-                                var content = new Dictionary<string, string>
-                                {
-                                    {"playerUuid", playerObject.Uuid},
-                                    {"obstacleUuid", x.Name}
-                                };
-
-                                //obstacleList.Remove(x.Name);
-                                Controls.Remove(x);
-
-                                updater.PostData("api/player/touch-obstacle", Processor.PostDataType.Post, content);
+                                eatenObstacle = obstacleObject;
                             }
+
+                            if (eatenObstacle != null)
+                            {
+                                eatenObstacleObjects.AddObject(eatenObstacle);
+                            }
+
+                            obstacleObjects.RemoveObject(eatenObstacle);
+
+                            var content = new Dictionary<string, string>
+                            {
+                                {"playerUuid", playerObject.Uuid},
+                                {"obstacleUuid", x.Name}
+                            };
+
+                            //obstacleList.Remove(x.Name);
+                            Controls.Remove(x);
+
+                            updater.PostData("api/player/touch-obstacle", Processor.PostDataType.Post, content);
+                        }
+                    }
+
+                    if (x.Tag.Equals(ObjectType.TimeTravel))
+                    {
+                        if (playerObject.objectControl.Bounds.IntersectsWith(x.Bounds))
+                        {
+                            MoveBack();
                         }
                     }
                 }
-            }
 
-            SetScore(playerObject.size * 10);
+                SetScore(playerObject.size * 10);
+            }
+        }
+
+        private void MoveBack()
+        {
+            //If is already moving back
+            if (!PlayerSettings.canMove) return;
+
+            //Set timer and start moving back.
+            savedPositionCount = playerPositions.GetMementoCount();
+
+            timer = 100;
+
+            PlayerSettings.canMove = false;
         }
 
         #region Key Events
@@ -366,6 +403,15 @@ namespace Play3_Client_Side
                 //obstacleList.Add(clonedObstacle.Uuid);
                 obstacleObjects.AddObject(clonedObstacle);
             }
+
+            var clonedTimeTravel = prototypes.GetTimeTravelClone();
+
+            clonedTimeTravel.Update(Guid.NewGuid().ToString(), new Random().Next(0, maxX), new Random().Next(0, maxY),
+                20);
+
+            Controls.Add(clonedTimeTravel.objectControl);
+
+            timeTravelObjects.AddObject(clonedTimeTravel);
         }
 
         #region Timer Events
@@ -378,48 +424,89 @@ namespace Play3_Client_Side
             }
 
             var moved = false;
-            var calc = PlayerSettings.minPlayerSpeed * (PlayerSettings.maxPlayerSize / playerObject.size);
 
-            var speed = calc > PlayerSettings.maxPlayerSpeed ? PlayerSettings.maxPlayerSpeed : calc;
-            var mover = new PlayerMover();
-            if (PlayerSettings.movingUp)
+            if (PlayerSettings.canMove)
             {
-                var newCoord = playerObject.yCoord - speed;
-                if (newCoord < 0) return;
+                var calc = PlayerSettings.minPlayerSpeed * (PlayerSettings.maxPlayerSize / playerObject.size);
 
-                ICommand moveUp = new MoveUp(playerObject, newCoord);
-                mover.performMove(moveUp);
-                moved = true;
+                var speed = calc > PlayerSettings.maxPlayerSpeed ? PlayerSettings.maxPlayerSpeed : calc;
+                var mover = new PlayerMover();
+                if (PlayerSettings.movingUp)
+                {
+                    var newCoord = playerObject.yCoord - speed;
+                    if (newCoord < 0) return;
+
+                    ICommand moveUp = new MoveUp(playerObject, newCoord);
+                    mover.performMove(moveUp);
+                    moved = true;
+                }
+
+                if (PlayerSettings.movingDown)
+                {
+                    var newCoord = playerObject.yCoord + speed;
+                    if (newCoord > maxY) return;
+
+                    ICommand moveDown = new MoveDown(playerObject, newCoord);
+                    mover.performMove(moveDown);
+                    moved = true;
+                }
+
+                if (PlayerSettings.movingLeft)
+                {
+                    var newCoord = playerObject.xCoord - speed;
+                    if (newCoord < 0) return;
+
+                    ICommand moveLeft = new MoveLeft(playerObject, newCoord);
+                    mover.performMove(moveLeft);
+                    moved = true;
+                }
+
+                if (PlayerSettings.movingRight)
+                {
+                    var newCoord = playerObject.xCoord + speed;
+                    if (newCoord > maxX) return;
+
+                    ICommand moveRight = new MoveRight(playerObject, newCoord);
+                    mover.performMove(moveRight);
+                    moved = true;
+                }
+
+                //Create memento only if moved.
+                if (moved)
+                {
+                    playerObject.SetPosition(new TwoDimensionalPosition
+                    {
+                        X = playerObject.xCoord,
+                        Y = playerObject.yCoord
+                    });
+
+                    playerPositions.AddMemento(playerObject.CreateMemento());
+                }
             }
-
-            if (PlayerSettings.movingDown)
+            else
             {
-                var newCoord = playerObject.yCoord + speed;
-                if (newCoord > maxY) return;
+                timer--;
+                savedPositionCount--;
 
-                ICommand moveDown = new MoveDown(playerObject, newCoord);
-                mover.performMove(moveDown);
-                moved = true;
-            }
+                var newPos = playerPositions.GetMemento(savedPositionCount);
 
-            if (PlayerSettings.movingLeft)
-            {
-                var newCoord = playerObject.xCoord - speed;
-                if (newCoord < 0) return;
+                if (newPos.GetSavedPosition(playerObject.Uuid) != null)
+                {
+                    playerObject.MoveX(newPos.GetSavedPosition(playerObject.Uuid).X);
+                    moved = true;
+                }
 
-                ICommand moveLeft = new MoveLeft(playerObject, newCoord);
-                mover.performMove(moveLeft);
-                moved = true;
-            }
+                if (newPos.GetSavedPosition(playerObject.Uuid) != null)
+                {
+                    playerObject.MoveY(newPos.GetSavedPosition(playerObject.Uuid).Y);
+                    moved = true;
+                }
 
-            if (PlayerSettings.movingRight)
-            {
-                var newCoord = playerObject.xCoord + speed;
-                if (newCoord > maxX) return;
-
-                ICommand moveRight = new MoveRight(playerObject, newCoord);
-                mover.performMove(moveRight);
-                moved = true;
+                //Stop moving back either when timer ends or when out of saved positions
+                if (timer <= 0 || savedPositionCount <= 0)
+                {
+                    PlayerSettings.canMove = true;
+                }
             }
 
             //Send player locations to server.

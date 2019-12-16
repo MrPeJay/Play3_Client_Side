@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Play3_Client_Side.Properties;
@@ -8,6 +9,8 @@ namespace Play3_Client_Side.Prototype
 {
     internal class Player : Object
     {
+        public TwoDimensionalPosition position;
+
         public Player()
         {
             objectControl = new PictureBox
@@ -29,6 +32,16 @@ namespace Play3_Client_Side.Prototype
         {
             yCoord = y;
             objectControl.Top = yCoord;
+        }
+
+        public void SetPosition(TwoDimensionalPosition position)
+        {
+            this.position = position;
+        }
+
+        public Memento.Memento CreateMemento()
+        {
+            return new Memento.Memento(position, Uuid);
         }
 
         #region Parent overriden methods
@@ -100,5 +113,11 @@ namespace Play3_Client_Side.Prototype
         {
             return null;
         }
+    }
+
+    [Serializable]
+    public class TwoDimensionalPosition
+    {
+        public int X, Y;
     }
 }

@@ -57,6 +57,13 @@
     <Compile Include="API\ApiHelper.cs" />
     <Compile Include="API\DTO.cs" />
     <Compile Include="API\Processor.cs" />
+    <Compile Include="Memento\CareTaker.cs" />
+    <Compile Include="Memento\Memento.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Prototype_Template_Composite\Food.cs" />
     <Compile Include="Command\ICommand.cs" />
     <Compile Include="Command\MoveDown.cs" />
@@ -79,19 +86,15 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Prototype_Template_Composite\PrototypeHolder.cs" />
+    <Compile Include="Prototype_Template_Composite\TimeTravel.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -113,6 +116,11 @@
   <ItemGroup>
     <None Include="Resources\Obstacle.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Resources\plus+icon-1320168703597804908.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\TimeTravel.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

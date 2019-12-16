@@ -17,5 +17,6 @@ public enum ObjectType
 {
     Player,
     Food,
-    Obstacle
+    Obstacle,
+    TimeTravel
 }
